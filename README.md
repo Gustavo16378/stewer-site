@@ -60,7 +60,7 @@ src/
 
 public/
 ├── photos/                  fotos do hero e da seção sobre
-├── portifolioImgs/          cortes do portfólio
+├── portfolioImgs/           cortes do portfólio
 ├── instrutorImgs/           fotos dos cursos
 ├── portfolio-manifest.json
 ├── instrutor-manifest.json

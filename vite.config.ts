@@ -11,7 +11,7 @@ const VIDEO_EXTS = /\.(mp4|webm|mov)$/i
 
 /** Each gallery gets its own manifest, auto-built from its media folders. */
 const MANIFESTS = [
-  { imgDir: 'public/portifolioImgs', vidDir: 'public/videosImgs',    out: 'public/portfolio-manifest.json' },
+  { imgDir: 'public/portfolioImgs', vidDir: 'public/videosImgs',    out: 'public/portfolio-manifest.json' },
   { imgDir: 'public/instrutorImgs',  vidDir: 'public/instrutorVideos', out: 'public/instrutor-manifest.json' },
 ]
 

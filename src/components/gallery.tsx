@@ -11,7 +11,7 @@ export type MediaItem = { type: 'image'; src: string } | { type: 'video'; src: s
 export function interleave(
   images: string[],
   videos: string[],
-  imgBase = '/portifolioImgs',
+  imgBase = '/portfolioImgs',
   vidBase = '/videosImgs',
 ): MediaItem[] {
   const items: MediaItem[] = []
@@ -28,7 +28,7 @@ export function interleave(
 /** Fetch a media manifest and return the interleaved items + a loaded flag. */
 export function useManifest(
   url: string,
-  imgBase = '/portifolioImgs',
+  imgBase = '/portfolioImgs',
   vidBase = '/videosImgs',
 ): { items: MediaItem[]; loaded: boolean } {
   const [items, setItems] = useState<MediaItem[]>([])
