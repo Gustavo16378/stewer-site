@@ -62,6 +62,17 @@ describe('coordenadas do mapa', () => {
     expect(() => lerCoordenadas(ruim)).toThrow('Cole as coordenadas')
   })
 
+  it('aceita o link do Google Maps que já traz o ponto', () => {
+    expect(lerCoordenadas('https://www.google.com/maps/place/Boss/@-10.2,-48.3,17z/data=!3d-10.18256053!4d-48.32910908')).toEqual({
+      latitude: '-10.18256053',
+      longitude: '-48.32910908',
+    })
+  })
+
+  it('link curto: explica que precisa ser colado no painel, que abre ele', () => {
+    expect(() => lerCoordenadas('https://maps.app.goo.gl/AbC123')).toThrow('link curto')
+  })
+
   it.each(['48.3291, -10.1825', '-10.18, 48.32', '40.7128, -74.0060'])('recusa ponto fora do Brasil "%s"', (fora) => {
     expect(() => lerCoordenadas(fora)).toThrow('fora do Brasil')
   })

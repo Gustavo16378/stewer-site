@@ -31,6 +31,7 @@ describe('lista de campos', () => {
       'Ensino',
       'Portfólio',
       'Onde atende',
+      'Endereço',
       'Contato',
       'Rodapé',
     ])
@@ -43,6 +44,13 @@ describe('lista de campos', () => {
       expect(v.length, c.chave).toBeLessThanOrEqual(c.max)
       if (c.tipo === 'linhas' && c.linhas) expect(v.split('\n').length, c.chave).toBeLessThanOrEqual(c.linhas)
     }
+  })
+
+  it('o endereço é editado em "Contatos e mapa", e só ele', async () => {
+    const { CAMPOS_TEXTO } = await carregar()
+    const fora = CAMPOS_TEXTO.filter((c) => c.pagina).map((c) => c.chave)
+    expect(fora).toEqual(['local.nome', 'local.endereco', 'local.horario', 'local.atendimento'])
+    expect(CAMPOS_TEXTO.filter((c) => c.pagina).every((c) => c.secao === 'Endereço')).toBe(true)
   })
 
   it('campo de foto termina em .foto (a API usa isso para saber se a foto está em uso)', async () => {

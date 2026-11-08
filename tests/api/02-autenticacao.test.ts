@@ -124,6 +124,7 @@ describe('RF10 · toda rota do painel exige login', () => {
     ['DELETE', '/api/admin/usuarios/1'],
     ['GET', '/api/admin/auditoria?de=2026-01-01 00:00:00&ate=2027-01-01 00:00:00'],
     ['GET', '/api/admin/espaco'],
+    ['POST', '/api/admin/link-mapa'],
     ['PUT', '/api/admin/senha'],
   ]
   it.each(rotas)('%s %s sem login → 401', async (metodo, caminho) => {
