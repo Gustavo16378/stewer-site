@@ -14,7 +14,11 @@ export const onRequestGet: Funcao = ({ env, request }) =>
     const de = q.get('de') ?? ''
     const ate = q.get('ate') ?? ''
     if (!DATA.test(de) || !DATA.test(ate)) throw new ErroHttp('Período inválido.')
-    const usuario = q.get('usuario') ? Number(q.get('usuario')) : null
+    // filtro por pessoa: só id inteiro. Antes, "1 OR 1=1" virava NaN e o
+    // filtro sumia em silêncio (achado da suíte de segurança)
+    const bruto = q.get('usuario')
+    const usuario = bruto ? Number(bruto) : null
+    if (usuario !== null && (!/^\d{1,9}$/.test(bruto!) || usuario <= 0)) throw new ErroHttp('Pessoa inválida.')
 
     const { results } = await env.DB.prepare(
       `SELECT id, usuario_id, usuario_nome, acao, area, alvo, detalhe, criado_em
