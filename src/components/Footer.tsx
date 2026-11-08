@@ -1,3 +1,6 @@
+import { CONTATO, LOCAL, RODAPE, linkInstagram, linkTelefone, linkWhatsapp, telefoneFormatado } from '../content/site'
+import Linhas from './Linhas'
+
 const nav = [
   { label: 'Quem é',      href: '#sobre' },
   { label: 'Serviços',    href: '#servicos' },
@@ -7,11 +10,10 @@ const nav = [
   { label: 'Contato',     href: '#contato' },
 ]
 
-const WPP = 'https://wa.me/5563985116783?text=Ol%C3%A1%20Stewer%2C%20gostaria%20de%20agendar%20um%20hor%C3%A1rio.'
-const INSTA = 'https://www.instagram.com/stewer.gabriel'
-
 export default function Footer() {
   const year = new Date().getFullYear()
+  const WPP = linkWhatsapp()
+  const INSTA = linkInstagram()
 
   return (
     <footer className="bg-charcoal border-t border-wire/15">
@@ -28,7 +30,7 @@ export default function Footer() {
               </span>
             </a>
             <p className="mt-6 text-sand text-[13px] leading-relaxed max-w-xs">
-              Visagista &amp; consultor de imagem masculina. Técnica, identidade e presença — em Palmas, Tocantins.
+              {RODAPE.frase}
             </p>
             <div className="mt-7 flex items-center gap-4">
               <a
@@ -81,8 +83,8 @@ export default function Footer() {
             <p className="text-sand text-[10px] tracking-ultra uppercase">Contato</p>
             <ul className="mt-6 space-y-3.5">
               <li>
-                <a href="tel:+5563985116783" className="text-ivory text-[14px] hover:text-gold transition-colors duration-300">
-                  (63) 98511-6783
+                <a href={linkTelefone()} className="text-ivory text-[14px] hover:text-gold transition-colors duration-300">
+                  {telefoneFormatado()}
                 </a>
               </li>
               <li>
@@ -92,7 +94,7 @@ export default function Footer() {
               </li>
               <li>
                 <a href={INSTA} target="_blank" rel="noreferrer" className="text-ivory text-[14px] hover:text-gold transition-colors duration-300">
-                  @stewer.gabriel
+                  @{CONTATO.instagram}
                 </a>
               </li>
               <li>
@@ -108,14 +110,14 @@ export default function Footer() {
             <p className="text-sand text-[10px] tracking-ultra uppercase">Atendimento</p>
             <div className="mt-6 space-y-4">
               <div>
-                <p className="text-cream text-[14px] font-serif">Boss House Barbearia</p>
+                <p className="text-cream text-[14px] font-serif">{LOCAL.nome.join(' ')}</p>
                 <p className="mt-1 text-sand text-[13px] leading-relaxed">
-                  Q. ACNE 1, Rua NE 3, 15<br />Plano Diretor Norte · Palmas — TO
+                  <Linhas linhas={LOCAL.endereco} />
                 </p>
               </div>
               <div>
-                <p className="text-cream text-[14px]">Seg — Sáb · 9h às 19h</p>
-                <p className="mt-1 text-sand text-[13px]">Mediante agendamento</p>
+                <p className="text-cream text-[14px]">{LOCAL.horario.join(' · ')}</p>
+                <p className="mt-1 text-sand text-[13px]">{LOCAL.atendimento.join(' ')}</p>
               </div>
             </div>
           </div>
