@@ -96,6 +96,12 @@
 }
 .leaflet-control-attribution a { color: #8a8178 !important; text-decoration: none; }
 
+/* Reserva final do mapa (lib/mapa.ts): o OpenStreetMap padrão é claro;
+   invertido e sem cor, fica no mesmo tom carvão do resto do site. */
+.mapa-osm {
+  filter: invert(1) hue-rotate(180deg) grayscale(1) brightness(0.72) contrast(1.15);
+}
+
 /* Custom gold teardrop pin — the tip marks the exact spot */
 .boss-pin {
   position: absolute;

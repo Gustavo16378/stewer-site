@@ -10,6 +10,7 @@ import {
   linkTelefone,
   telefoneFormatado,
 } from '../content/site'
+import { fundoEscuro } from '../lib/mapa'
 import Linhas from './Linhas'
 
 /** escapa o nome do lugar antes de ir para o HTML do marcador do Leaflet */
@@ -35,11 +36,8 @@ export default function Location() {
       attributionControl: false,
     })
 
-    // CARTO dark basemap (OpenStreetMap data)
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      subdomains: 'abcd',
-      maxZoom: 20,
-    }).addTo(map)
+    // fundo escuro com reserva: CARTO → OpenFreeMap → OSM (ver lib/mapa.ts)
+    const desligarFundo = fundoEscuro(map)
 
     // Prominent gold teardrop pin (tip = exact location), pulsing halo + label
     const icon = L.divIcon({
@@ -56,10 +54,6 @@ export default function Location() {
     L.marker([LAT, LNG], { icon }).addTo(map)
 
     L.control.zoom({ position: 'topright' }).addTo(map)
-    L.control
-      .attribution({ position: 'bottomright', prefix: false })
-      .addAttribution('Mapa © OpenStreetMap · © CARTO')
-      .addTo(map)
 
     // Entrance animation — fly in the first time the section is seen
     // (respects prefers-reduced-motion)
@@ -79,6 +73,7 @@ export default function Location() {
 
     return () => {
       io.disconnect()
+      desligarFundo()
       map.remove()
     }
   }, [LAT, LNG, nome])
