@@ -1,16 +1,11 @@
 import { useState, useEffect } from 'react'
+import Linhas from './Linhas'
+import { HERO, SLIDES, type Foto } from '../content/site'
 
-// ─────────────────────────────────────────────────────────────
-//  ADICIONE SUAS FOTOS AQUI
-//  Coloque os arquivos em public/photos/ e liste os caminhos.
-//  Exemplo: '/photos/stewer-1.jpg'
-// ─────────────────────────────────────────────────────────────
-const SLIDES: string[] = [
-  '/photos/Stewer1.jpg',
-  '/photos/Stewer2.jpg',
-]
+// As fotos e os textos da abertura vêm do painel (aba "Fotos da abertura" e
+// "Textos do site"); o que está em content/site.ts é a reserva.
 
-function Slide({ src, active }: { src: string; active: boolean }) {
+function Slide({ foto, active }: { foto: Foto; active: boolean }) {
   return (
     <div
       className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
@@ -18,9 +13,10 @@ function Slide({ src, active }: { src: string; active: boolean }) {
       }`}
     >
       <img
-        src={src}
+        src={foto.src}
         alt=""
         className="w-full h-full object-cover object-top"
+        style={{ objectPosition: foto.posicao ?? '50% 0%' }}
         draggable={false}
       />
     </div>
@@ -31,6 +27,7 @@ export default function Hero() {
   const [active, setActive] = useState(0)
 
   useEffect(() => {
+    if (SLIDES.length < 2) return
     const id = setInterval(() => setActive(i => (i + 1) % SLIDES.length), 4500)
     return () => clearInterval(id)
   }, [])
@@ -40,8 +37,8 @@ export default function Hero() {
 
       {/* ━━━ MOBILE: foto no topo (em fluxo) ━━━ */}
       <div className="md:hidden relative w-full" style={{ aspectRatio: '3/4' }}>
-        {SLIDES.map((src, i) => (
-          <Slide key={src} src={src} active={i === active} />
+        {SLIDES.map((foto, i) => (
+          <Slide key={foto.src} foto={foto} active={i === active} />
         ))}
 
         {/* Dissolve na base */}
@@ -55,7 +52,7 @@ export default function Hero() {
         />
 
         {/* Dots */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+        <div className={`absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10 ${SLIDES.length < 2 ? 'hidden' : ''}`}>
           {SLIDES.map((_, i) => (
             <button
               key={i}
@@ -71,8 +68,8 @@ export default function Hero() {
 
       {/* ━━━ DESKTOP: foto absoluta no lado direito, sem borda ━━━ */}
       <div className="hidden md:block absolute right-0 top-0 bottom-0 w-[54%]">
-        {SLIDES.map((src, i) => (
-          <Slide key={src} src={src} active={i === active} />
+        {SLIDES.map((foto, i) => (
+          <Slide key={foto.src} foto={foto} active={i === active} />
         ))}
 
         {/* Dissolve esquerda — principal */}
@@ -120,22 +117,22 @@ export default function Hero() {
         <div className="flex-1 flex items-center py-10 md:py-0">
           <div className="max-w-xl">
             <p className="text-sand text-[10px] tracking-ultra uppercase mb-6 fade-up">
-              Palmas, TO · Visagista &amp; Consultor de Imagem
+              {HERO.local}
             </p>
 
             <h1 className="font-serif text-[clamp(3.5rem,10vw,8rem)] leading-[0.88] text-cream tracking-tight fade-up fade-up-d1">
-              Stewer<br />Gabriel
+              <Linhas linhas={HERO.nome} />
             </h1>
 
             <div className="mt-8 flex items-center gap-4 fade-up fade-up-d2">
               <span className="w-10 h-px bg-gold" />
               <span className="text-gold text-[10px] tracking-ultra uppercase">
-                Masculinidade com propósito
+                {HERO.lema}
               </span>
             </div>
 
             <p className="mt-8 text-ivory text-lg leading-relaxed font-light italic max-w-sm fade-up fade-up-d3">
-              "Construindo homens confiantes, com personalidade única — transformando aparência em posicionamento."
+              {HERO.frase}
             </p>
 
             <div className="mt-12 flex flex-wrap items-center gap-4 fade-up fade-up-d4">
@@ -143,13 +140,13 @@ export default function Hero() {
                 href="#contato"
                 className="text-[11px] tracking-ultra uppercase text-gold border border-gold/60 px-8 py-3.5 hover:bg-gold hover:text-carbon transition-all duration-300"
               >
-                Agende sua consultoria
+                {HERO.ctaPrimario}
               </a>
               <a
                 href="#portfolio"
                 className="text-[11px] tracking-ultra uppercase text-sand hover:text-cream transition-colors duration-300"
               >
-                Ver portfólio
+                {HERO.ctaSecundario}
               </a>
             </div>
           </div>
@@ -162,7 +159,7 @@ export default function Hero() {
             <span className="text-wire text-[10px] tracking-ultra uppercase">Scroll</span>
           </div>
 
-          <div className="flex gap-2 items-center">
+          <div className={`flex gap-2 items-center ${SLIDES.length < 2 ? 'invisible' : ''}`}>
             {SLIDES.map((_, i) => (
               <button
                 key={i}

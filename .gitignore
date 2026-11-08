@@ -24,3 +24,12 @@ Thumbs.db
 .claude/
 .env.*
 !.env.example
+
+# segredos e banco local do wrangler
+.dev.vars
+.wrangler/
+
+# saídas dos testes
+test-results/
+tests/relatorio-e2e/
+coverage/

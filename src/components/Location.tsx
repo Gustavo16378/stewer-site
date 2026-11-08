@@ -1,16 +1,28 @@
 import { useEffect, useRef } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import {
+  LOCAL,
+  ONDE,
+  grausMinutos,
+  linkMapa,
+  linkRota,
+  linkTelefone,
+  telefoneFormatado,
+} from '../content/site'
+import Linhas from './Linhas'
 
-/* Boss House Barbearia — Palmas, TO (coords from the venue's Google Maps pin) */
-const LAT = -10.18256053
-const LNG = -48.32910908
-const COORDS = '10°10\'57"S · 48°19\'45"W'
-const ROTA = `https://www.google.com/maps/dir/?api=1&destination=${LAT},${LNG}`
-const GMAPS = 'https://www.google.com/maps/search/?api=1&query=Boss%20House%20Barbearia%2C%20Palmas%20-%20TO'
+/** escapa o nome do lugar antes de ir para o HTML do marcador do Leaflet */
+const html = (s: string) =>
+  s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!)
 
 export default function Location() {
   const mapEl = useRef<HTMLDivElement>(null)
+  // o local e o nome vêm do painel (aba "Contatos e mapa" e "Textos do site")
+  const LAT = LOCAL.latitude
+  const LNG = LOCAL.longitude
+  const nome = LOCAL.nome.join(' ')
+  const COORDS = `${grausMinutos(LAT, 'lat')} · ${grausMinutos(LNG, 'lng')}`
 
   useEffect(() => {
     if (!mapEl.current) return
@@ -37,7 +49,7 @@ export default function Location() {
         '<svg class="boss-pin" viewBox="0 0 24 34" xmlns="http://www.w3.org/2000/svg">' +
         '<path d="M12 0C5.37 0 0 5.37 0 12c0 8.5 12 22 12 22s12-13.5 12-22C24 5.37 18.63 0 12 0z" fill="#c4a882"/>' +
         '<circle cx="12" cy="12" r="4.5" fill="#0c0c0c"/></svg>' +
-        '<span class="boss-label">Boss House Barbearia</span>',
+        `<span class="boss-label">${html(nome)}</span>`,
       iconSize: [28, 40],
       iconAnchor: [14, 40],
     })
@@ -69,14 +81,14 @@ export default function Location() {
       io.disconnect()
       map.remove()
     }
-  }, [])
+  }, [LAT, LNG, nome])
 
   return (
     <section id="onde-atende" className="relative bg-carbon">
       {/* Section label — top left over the map */}
       <div className="absolute top-8 left-6 lg:left-12 z-[20] flex items-center gap-4">
         <span className="w-8 h-px bg-gold" />
-        <p className="text-sand text-[10px] tracking-ultra uppercase">Onde atende · Como chegar</p>
+        <p className="text-sand text-[10px] tracking-ultra uppercase">{ONDE.rotulo}</p>
       </div>
 
       {/* Coordinates — top right */}
@@ -89,19 +101,18 @@ export default function Location() {
       <div
         ref={mapEl}
         className="relative z-0 h-[58vh] min-h-[440px] sm:h-[82vh] sm:min-h-[600px] w-full"
-        aria-label="Mapa — Boss House Barbearia"
+        aria-label={`Mapa — ${nome}`}
       />
 
       {/* Info card — flows BELOW the map on mobile (never covers the pin),
           overlays bottom-left from sm up. */}
       <div className="relative m-4 sm:m-0 sm:absolute sm:bottom-12 sm:left-12 sm:right-auto z-[20] w-auto sm:w-[26rem] border border-wire/40 bg-carbon sm:bg-carbon/90 sm:backdrop-blur-md p-8 sm:p-10">
         <h2 className="font-serif text-[clamp(1.75rem,3.5vw,2.5rem)] leading-[1.08] text-cream">
-          Boss House<br />Barbearia
+          <Linhas linhas={LOCAL.nome} />
         </h2>
 
         <p className="mt-4 text-ivory text-[13px] leading-relaxed">
-          Q. ACNE 1, Rua NE 3, Nº 15<br />
-          Plano Diretor Norte · Palmas — TO
+          <Linhas linhas={LOCAL.endereco} />
         </p>
 
         <div className="my-6 w-full h-px bg-wire/40" />
@@ -109,39 +120,39 @@ export default function Location() {
         <div className="grid grid-cols-2 gap-5">
           <div>
             <p className="text-sand text-[10px] tracking-ultra uppercase">Horário</p>
-            <p className="mt-2 text-cream text-[13px] leading-snug">Seg — Sáb<br />9h às 19h</p>
+            <p className="mt-2 text-cream text-[13px] leading-snug"><Linhas linhas={LOCAL.horario} /></p>
           </div>
           <div>
             <p className="text-sand text-[10px] tracking-ultra uppercase">Atendimento</p>
-            <p className="mt-2 text-cream text-[13px] leading-snug">Mediante<br />agendamento</p>
+            <p className="mt-2 text-cream text-[13px] leading-snug"><Linhas linhas={LOCAL.atendimento} /></p>
           </div>
         </div>
 
         <div className="my-6 w-full h-px bg-wire/40" />
 
         <a
-          href="tel:+5563985116783"
+          href={linkTelefone()}
           className="inline-block py-1 -my-1 text-cream text-[15px] tracking-wide hover:text-gold transition-colors"
         >
-          (63) 98511-6783
+          {telefoneFormatado()}
         </a>
 
         <div className="mt-7 flex flex-col sm:flex-row gap-3">
           <a
-            href={ROTA}
+            href={linkRota()}
             target="_blank"
             rel="noreferrer"
             className="flex-1 inline-flex items-center justify-center gap-2 text-carbon text-[10px] tracking-ultra uppercase bg-gold px-6 py-3.5 hover:bg-cream transition-colors duration-300"
           >
-            Traçar rota <span className="text-xs">↗</span>
+            {ONDE.rota} <span className="text-xs">↗</span>
           </a>
           <a
-            href={GMAPS}
+            href={linkMapa()}
             target="_blank"
             rel="noreferrer"
             className="flex-1 inline-flex items-center justify-center text-gold text-[10px] tracking-ultra uppercase border border-gold/60 px-6 py-3.5 hover:bg-gold hover:text-carbon transition-all duration-300"
           >
-            Ver no Google Maps
+            {ONDE.mapa}
           </a>
         </div>
       </div>

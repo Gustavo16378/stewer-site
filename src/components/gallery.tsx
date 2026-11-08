@@ -1,50 +1,24 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { createPortal } from 'react-dom'
+import type { Foto } from '../content/site'
 
-export interface Manifest {
-  images: string[]
-  videos: string[]
-}
+export type MediaItem =
+  | { type: 'image'; src: string; alt: string; posicao?: string }
+  | { type: 'video'; src: string }
 
-export type MediaItem = { type: 'image'; src: string } | { type: 'video'; src: string }
-
-export function interleave(
-  images: string[],
-  videos: string[],
-  imgBase = '/portfolioImgs',
-  vidBase = '/videosImgs',
-): MediaItem[] {
+/**
+ * Junta as fotos (que vêm do painel) com os vídeos (que ficam no código),
+ * intercalando: foto, vídeo, foto, vídeo… e o que sobrar no fim.
+ */
+export function juntarMidias(fotos: Foto[], videos: string[]): MediaItem[] {
   const items: MediaItem[] = []
-  const imgs = images.map(f => ({ type: 'image' as const, src: `${imgBase}/${f}` }))
-  const vids = videos.map(f => ({ type: 'video' as const, src: `${vidBase}/${f}` }))
-  const max = Math.max(imgs.length, vids.length)
+  const max = Math.max(fotos.length, videos.length)
   for (let i = 0; i < max; i++) {
-    if (imgs[i]) items.push(imgs[i])
-    if (vids[i]) items.push(vids[i])
+    const f = fotos[i]
+    if (f) items.push({ type: 'image', src: f.src, alt: f.alt, posicao: f.posicao })
+    if (videos[i]) items.push({ type: 'video', src: videos[i] })
   }
   return items
-}
-
-/** Fetch a media manifest and return the interleaved items + a loaded flag. */
-export function useManifest(
-  url: string,
-  imgBase = '/portfolioImgs',
-  vidBase = '/videosImgs',
-): { items: MediaItem[]; loaded: boolean } {
-  const [items, setItems] = useState<MediaItem[]>([])
-  const [loaded, setLoaded] = useState(false)
-
-  useEffect(() => {
-    fetch(url)
-      .then(r => r.json())
-      .then((m: Manifest) => {
-        setItems(interleave(m.images ?? [], m.videos ?? [], imgBase, vidBase))
-        setLoaded(true)
-      })
-      .catch(() => setLoaded(true))
-  }, [url, imgBase, vidBase])
-
-  return { items, loaded }
 }
 
 function VideoTile({ src, heightClass = 'h-auto' }: { src: string; heightClass?: string }) {
@@ -86,6 +60,9 @@ function Lightbox({ item, onClose }: { item: MediaItem; onClose: () => void }) {
 
   return (
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={item.type === 'image' ? item.alt || 'Foto ampliada' : 'Vídeo ampliado'}
       className="fixed inset-0 z-[90] flex items-center justify-center bg-carbon/90 backdrop-blur-md p-4"
       onClick={onClose}
     >
@@ -109,7 +86,7 @@ function Lightbox({ item, onClose }: { item: MediaItem; onClose: () => void }) {
         {item.type === 'image' ? (
           <img
             src={item.src}
-            alt=""
+            alt={item.alt}
             className="max-w-full max-h-[90vh] object-contain"
           />
         ) : (
@@ -165,8 +142,8 @@ export function MediaGallery({
   const gridRef = useRef<HTMLDivElement>(null)
   const close = useCallback(() => setSelected(null), [])
 
-  // Tiles mount asynchronously (after the manifest loads), so the global
-  // App observer has already run — reveal them with a local observer.
+  // Tiles can mount after the global App observer ran (e.g. the gallery
+  // appears below the fold later) — reveal them with a local observer.
   useEffect(() => {
     const root = gridRef.current
     if (!root || items.length === 0) return
@@ -183,7 +160,7 @@ export function MediaGallery({
     )
     root.querySelectorAll('.fade-up').forEach(el => io.observe(el))
     return () => io.disconnect()
-  }, [items])
+  }, [items.length])
 
   return (
     <>
@@ -191,16 +168,26 @@ export function MediaGallery({
         {items.map((item, i) => (
           <div
             key={i}
+            role="button"
+            tabIndex={0}
+            aria-label={item.type === 'image' ? `Ampliar foto: ${item.alt}` : 'Ampliar vídeo'}
             onClick={() => setSelected(item)}
-            className={`overflow-hidden group cursor-pointer relative fade-up ${tileClass}`}
+            onKeyDown={e => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                setSelected(item)
+              }
+            }}
+            className={`overflow-hidden group cursor-pointer relative fade-up focus-visible:outline focus-visible:outline-1 focus-visible:outline-gold ${tileClass}`}
             style={{ transitionDelay: `${(i % 3) * 0.08}s` }}
           >
             {item.type === 'image' ? (
               <img
                 src={item.src}
-                alt=""
+                alt={item.alt}
                 loading="lazy"
                 className={`w-full ${mediaHeight} object-cover group-hover:scale-105 transition-transform duration-700`}
+                style={item.posicao ? { objectPosition: item.posicao } : undefined}
               />
             ) : (
               <VideoTile src={item.src} heightClass={mediaHeight} />
