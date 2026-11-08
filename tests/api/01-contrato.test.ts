@@ -13,7 +13,9 @@ describe('RNF10 · GET /api/conteudo', () => {
     const r = await visitante.get('/api/conteudo')
     expect(r.status).toBe(200)
     expect(r.cabecalhos.get('content-type')).toContain('application/json')
-    expect(r.cabecalhos.get('cache-control')).toMatch(/no-store|max-age=0/)
+    // no-cache: sempre confere com o servidor (o que o painel salva aparece no
+    // próximo carregamento), mas deixa o preload do index.html ser reaproveitado
+    expect(r.cabecalhos.get('cache-control')).toBe('no-cache')
     expect(() => ConteudoPublico.parse(r.corpo)).not.toThrow()
   })
 
