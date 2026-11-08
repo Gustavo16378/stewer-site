@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { LogoNaCaixa } from './Logo'
 
 const links = [
   { label: 'Quem é',      href: '#sobre' },
@@ -59,7 +60,7 @@ export default function Nav() {
 
           {/* Logo */}
           <a href="#" aria-label="Stewer Gabriel" className="group flex items-center gap-2">
-            <img src="./photos/logo1.png" alt="" className="h-16 w-auto object-contain" />
+            <LogoNaCaixa altura={64} />
             <span className="font-serif text-cream text-lg leading-tight tracking-wide group-hover:text-gold transition-colors duration-300">
               Stewer Gabriel
             </span>
