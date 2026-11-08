@@ -57,15 +57,17 @@ function segredo(env: Env) {
   ])
 }
 
-type Carga = { sub: number; nome: string; email: string; exp: number }
+/** `sid`: a linha da tabela `sessoes` que mantém este token vivo (migração 0003) */
+type Carga = { sub: number; nome: string; email: string; exp: number; sid: string }
 
-export async function assinar(env: Env, usuario: { id: number; nome: string; email: string }) {
+export async function assinar(env: Env, usuario: { id: number; nome: string; email: string }, sid: string) {
   const cabecalho = b64url(enc.encode(JSON.stringify({ alg: 'HS256', typ: 'JWT' })))
   const carga: Carga = {
     sub: usuario.id,
     nome: usuario.nome,
     email: usuario.email,
     exp: Math.floor(Date.now() / 1000) + DURACAO_S,
+    sid,
   }
   const corpo = b64url(enc.encode(JSON.stringify(carga)))
   const assinatura = await crypto.subtle.sign('HMAC', await segredo(env), enc.encode(`${cabecalho}.${corpo}`))
@@ -84,13 +86,62 @@ export async function verificar(env: Env, token: string): Promise<Carga | null> 
       enc.encode(`${cabecalho}.${corpo}`),
     )
     if (!ok) return null
+    // só HS256: um token que diga "alg: none" (ou qualquer outro) não passa
+    const topo = JSON.parse(new TextDecoder().decode(deB64url(cabecalho))) as { alg?: unknown }
+    if (topo.alg !== 'HS256') return null
     const carga = JSON.parse(new TextDecoder().decode(deB64url(corpo))) as Carga
+    if (!Number.isInteger(carga.sub) || carga.sub <= 0 || typeof carga.sid !== 'string') return null
     if (typeof carga.exp !== 'number' || carga.exp < Date.now() / 1000) return null
     return carga
   } catch {
     return null
   }
 }
+
+export type Sessao = { id: number; nome: string; email: string; trocar_senha: number; sid: string }
+
+/**
+ * Cria a sessão no banco e devolve o token que aponta para ela. O id é
+ * aleatório (128 bits): não dá para adivinhar o de outra pessoa.
+ */
+export async function abrirSessao(env: Env, usuario: { id: number; nome: string; email: string }) {
+  const sid = b64url(crypto.getRandomValues(new Uint8Array(16)))
+  await env.DB.batch([
+    // sessão vencida não serve para nada: sai do banco aqui mesmo
+    env.DB.prepare(`DELETE FROM sessoes WHERE expira_em < datetime('now')`),
+    env.DB.prepare(`INSERT INTO sessoes (id, usuario_id, expira_em) VALUES (?, ?, datetime('now', ?))`).bind(
+      sid,
+      usuario.id,
+      `+${DURACAO_S} seconds`,
+    ),
+  ])
+  return assinar(env, usuario, sid)
+}
+
+/**
+ * A sessão do pedido, conferida de ponta a ponta: assinatura, validade, a
+ * sessão ainda existir no banco (não foi encerrada) e a pessoa também (quem
+ * foi removido em Usuários perde o acesso na hora).
+ */
+export async function sessaoDoPedido(env: Env, req: Request): Promise<Sessao | null> {
+  const token = lerCookie(req)
+  const carga = token ? await verificar(env, token) : null
+  if (!carga) return null
+  return env.DB.prepare(
+    `SELECT u.id, u.nome, u.email, u.trocar_senha, s.id AS sid
+       FROM sessoes s JOIN usuarios u ON u.id = s.usuario_id
+      WHERE s.id = ? AND s.usuario_id = ? AND s.expira_em > datetime('now')`,
+  )
+    .bind(carga.sid, carga.sub)
+    .first<Sessao>()
+}
+
+/** encerra uma sessão (Sair) */
+export const encerrarSessao = (env: Env, sid: string) => env.DB.prepare('DELETE FROM sessoes WHERE id = ?').bind(sid)
+
+/** encerra as sessões da pessoa, menos a que for passada (a de quem está pedindo) */
+export const encerrarSessoes = (env: Env, usuario: number, manter = '') =>
+  env.DB.prepare('DELETE FROM sessoes WHERE usuario_id = ? AND id <> ?').bind(usuario, manter)
 
 export function lerCookie(req: Request) {
   const cookies = req.headers.get('Cookie') ?? ''

@@ -46,7 +46,7 @@ describe('RNF15 · migrations', () => {
   it('criam todas as tabelas esperadas', () => {
     const tabelas = todos(`SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'`).map((t) => t.name)
     expect(tabelas.sort()).toEqual(
-      [...LISTAS, 'auditoria', 'configuracoes', 'midias', 'tentativas', 'textos', 'usuarios'].sort(),
+      [...LISTAS, 'auditoria', 'configuracoes', 'midias', 'sessoes', 'tentativas', 'textos', 'usuarios'].sort(),
     )
   })
 
@@ -150,6 +150,18 @@ describe('RNF09 · chaves estrangeiras', () => {
 
   it.each(DE_FOTO)('%s não pode apontar para foto inexistente', (t) => {
     expect(() => executar(`UPDATE ${t} SET foto_id = 9999 WHERE id = 1`)).toThrow(/FOREIGN KEY/)
+  })
+
+  it('RNF02 · tirar o acesso de alguém apaga as sessões dela junto (CASCADE)', () => {
+    executar(`INSERT INTO usuarios (nome, email, senha_hash, salt, iteracoes) VALUES ('A', 'sai@b.c', 'h', 's', 1)`)
+    const { id } = um(`SELECT id FROM usuarios WHERE email = 'sai@b.c'`)
+    executar(`INSERT INTO sessoes (id, usuario_id, expira_em) VALUES ('s1', ?, datetime('now', '+1 hour'))`, id as number)
+    executar('DELETE FROM usuarios WHERE id = ?', id as number)
+    expect(um('SELECT COUNT(*) AS n FROM sessoes').n).toBe(0)
+  })
+
+  it('RNF02 · sessão de pessoa que não existe é recusada', () => {
+    expect(() => executar(`INSERT INTO sessoes (id, usuario_id, expira_em) VALUES ('s2', 9999, '2099-01-01')`)).toThrow(/FOREIGN KEY/)
   })
 
   it('foto que nenhuma lista usa pode ser apagada', () => {

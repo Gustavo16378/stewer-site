@@ -1,5 +1,5 @@
 import { registrar } from '../../../_lib/auditoria'
-import { gerarHash } from '../../../_lib/auth'
+import { gerarHash, encerrarSessoes } from '../../../_lib/auth'
 import { ErroHttp, idDaRota, json, tratar } from '../../../_lib/http'
 import type { Funcao } from '../../../_lib/tipos'
 import { senhaTemporaria } from '../../../_lib/senha'
@@ -20,10 +20,12 @@ export const onRequestPut: Funcao<'id'> = ({ params, env, data }) =>
       .first<{ nome: string }>()
     if (!u) throw new ErroHttp('Essa pessoa não existe mais.', 404)
 
-    // limpa o freio de login, para a pessoa conseguir entrar com a temporária na hora
-    await env.DB.prepare(`DELETE FROM tentativas WHERE chave = (SELECT 'login:' || email FROM usuarios WHERE id = ?)`)
-      .bind(id)
-      .run()
+    await env.DB.batch([
+      // limpa o freio de login, para a pessoa conseguir entrar com a temporária na hora
+      env.DB.prepare(`DELETE FROM tentativas WHERE chave = (SELECT 'login:' || email FROM usuarios WHERE id = ?)`).bind(id),
+      // e derruba as sessões abertas dela: a senha antiga pode ter vazado
+      encerrarSessoes(env, id),
+    ])
     await registrar(env, data.usuario, 'trocou', 'usuarios', `senha de ${u.nome}`, 'gerou senha temporária')
     return json({ senhaTemporaria: senha })
   })

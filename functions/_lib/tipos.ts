@@ -7,7 +7,8 @@ export interface Env {
 
 /** O que o middleware do painel deixa para as rotas de /api/admin. */
 export interface DadosSessao extends Record<string, unknown> {
-  usuario: { id: number; nome: string; email: string }
+  /** quem está no painel; `sid` é a sessão deste pedido */
+  usuario: { id: number; nome: string; email: string; sid: string }
 }
 
 export type Funcao<P extends string = never> = PagesFunction<Env, P, DadosSessao>

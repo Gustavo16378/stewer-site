@@ -57,13 +57,16 @@ describe('RF16 · dar acesso', () => {
     await expect(new Cliente().entrar('gustavo@teste.local', 'outra-senha-123')).resolves.toBeTruthy()
   })
 
-  it('RF16 · "esqueceu a senha": a antiga para de valer e a sessão aberta trava até trocar', async () => {
+  it('RF16 · "esqueceu a senha": a antiga para de valer e a sessão aberta é encerrada', async () => {
     const painel = await logado()
     const r = await painel.put(`/api/admin/usuarios/${idGustavo}`)
     expect(r.status).toBe(200)
     expect((await new Cliente().post('/api/auth/login', { email: 'gustavo@teste.local', senha: 'outra-senha-123' })).status).toBe(401)
+    // a senha antiga pode ter vazado: a sessão que estava aberta com ela cai (RNF02)
+    expect((await gustavo.get('/api/admin/servicos')).status).toBe(401)
+    await expect(gustavo.entrar('gustavo@teste.local', r.corpo.senhaTemporaria)).resolves.toBeTruthy()
+    // entrou com a temporária: só a troca de senha está liberada
     expect((await gustavo.get('/api/admin/servicos')).status).toBe(403)
-    await expect(new Cliente().entrar('gustavo@teste.local', r.corpo.senhaTemporaria)).resolves.toBeTruthy()
   })
 
   it('RF16 · tirar acesso derruba a sessão na hora', async () => {
