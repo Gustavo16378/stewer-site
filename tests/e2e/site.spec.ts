@@ -91,6 +91,31 @@ test.describe('site público', () => {
     await expect(page.locator('#onde-atende .boss-label')).toHaveText('Boss House Barbearia')
   })
 
+  test('RF07 · no celular, um dedo rola a página e só dois dedos mexem no mapa', async ({ page }, info) => {
+    await abrirSite(page, '#onde-atende')
+    const mapa = page.locator('#onde-atende .leaflet-container')
+    await expect(mapa).toBeVisible()
+    const touchAction = await mapa.evaluate((el) => getComputedStyle(el).touchAction)
+    if (info.project.name === 'celular') {
+      // sem arrastar com um dedo: o navegador rola a página; a pinça continua
+      await expect(mapa).not.toHaveClass(/leaflet-grab/)
+      expect(touchAction).toMatch(/pan-y/)
+      // arrastar com um dedo mostra o aviso
+      await mapa.evaluate((el) => {
+        const toque = (y: number) => [new Touch({ identifier: 1, target: el, clientX: 100, clientY: y })]
+        el.dispatchEvent(new TouchEvent('touchstart', { touches: toque(300), bubbles: true }))
+        el.dispatchEvent(new TouchEvent('touchmove', { touches: toque(250), bubbles: true }))
+      })
+      await expect(mapa.locator('.mapa-aviso')).toHaveClass(/mapa-aviso--visivel/)
+      await expect(mapa.locator('.mapa-aviso')).toHaveText('Use dois dedos para mover o mapa')
+      await expect(mapa.locator('.mapa-aviso')).not.toHaveClass(/mapa-aviso--visivel/, { timeout: 3000 })
+    } else {
+      // no computador o mapa continua arrastável com o mouse
+      await expect(mapa).toHaveClass(/leaflet-grab/)
+      await expect(mapa.locator('.mapa-aviso')).toHaveCount(0)
+    }
+  })
+
   test('RF02 · serviços todos ocultos: a seção sai da página e volta depois', async ({ page, request }) => {
     const painel = await api(request)
     const { itens } = await (await painel.get('/api/admin/servicos')).json()

@@ -92,7 +92,7 @@ async function rolarTudo(page: Page) {
 test.describe('RNF18 · Core Web Vitals do site', () => {
   // como um visitante novo de verdade: com animação e com a abertura de
   // marca (o pior caso; o resto dos E2E roda com movimento reduzido)
-  test.use({ abertura: true, reducedMotion: 'no-preference' })
+  test.use({ reducedMotion: 'no-preference' })
   test.skip(({ browserName }) => browserName !== 'chromium', 'throttling só no Chromium')
   test.describe.configure({ mode: 'serial' })
 

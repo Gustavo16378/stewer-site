@@ -36,26 +36,15 @@ export async function mapaFalso(page: Page) {
  * public/_headers bloquear durante o teste (um script, uma fonte, um pedaço
  * de mapa) reprova o teste, para a política nunca quebrar o site em silêncio.
  */
-export const test = base.extend<{ abertura: boolean }>({
-  /** `test.use({ abertura: true })` mostra a abertura de marca, como para um visitante novo */
-  abertura: [false, { option: true }],
-  page: async ({ page, abertura }, usar) => {
+export const test = base.extend({
+  page: async ({ page }, usar) => {
     const bloqueios: string[] = []
     page.on('console', (m) => {
       if (/Content[- ]Security[- ]Policy/i.test(m.text())) bloqueios.push(m.text())
     })
     await mapaFalso(page)
-    // a abertura de marca aparece uma vez por sessão: por padrão ela já
-    // "foi vista", para não ficar na frente dos cliques (ver abertura.spec.ts)
-    if (!abertura) {
-      await page.addInitScript(() => {
-        try {
-          sessionStorage.setItem('sg:preloader', '1')
-        } catch {
-          /* about:blank */
-        }
-      })
-    }
+    // a abertura de marca não aparece aqui: os E2E rodam com movimento
+    // reduzido (playwright.config); abertura.spec e desempenho.spec a ligam
     await usar(page)
     expect(bloqueios, 'a CSP bloqueou algo durante o teste').toEqual([])
   },

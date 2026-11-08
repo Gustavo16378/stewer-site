@@ -6,9 +6,9 @@
 import { abrirSite, expect, test } from './ajuda'
 
 test.describe('abertura de marca', () => {
-  test.use({ abertura: true, reducedMotion: 'no-preference' })
+  test.use({ reducedMotion: 'no-preference' })
 
-  test('visitante novo: o S é traçado, o nome aparece e a cortina sobe sozinha', async ({ page }) => {
+  test('o S é traçado, o nome aparece e a cortina sobe sozinha', async ({ page }) => {
     await page.goto('/')
     const cortina = page.locator('[data-preloader]')
     await expect(cortina).toBeVisible()
@@ -25,25 +25,32 @@ test.describe('abertura de marca', () => {
     expect(await page.evaluate(() => getComputedStyle(document.documentElement).overflow)).not.toBe('hidden')
   })
 
-  test('uma vez por sessão: recarregar não mostra de novo', async ({ page }) => {
+  test('aparece de novo a cada carregamento, inclusive ao recarregar', async ({ page }) => {
     await page.goto('/')
     await expect(page.locator('[data-preloader]')).toHaveCount(0, { timeout: 7000 })
     await page.reload()
-    await expect(page.locator('h1')).toBeVisible()
-    await expect(page.locator('[data-preloader]')).toHaveCount(0)
+    await expect(page.locator('[data-preloader]')).toBeVisible()
+    await expect(page.locator('[data-preloader]')).toHaveCount(0, { timeout: 7000 })
+  })
+
+  test('é rápida: a cortina começa a subir em até 2 s quando o site já está pronto', async ({ page }) => {
+    await page.goto('/')
+    const t0 = Date.now()
+    await expect(page.locator('[data-preloader]')).toHaveClass(/pl-saindo/, { timeout: 4000 })
+    expect(Date.now() - t0).toBeLessThan(2000)
   })
 
   test('a cortina não sobe antes de o site estar pronto (API lenta)', async ({ page }) => {
     await page.route('**/api/conteudo', async (r) => {
-      await new Promise((ok) => setTimeout(ok, 2000))
+      await new Promise((ok) => setTimeout(ok, 3000))
       await r.continue()
     })
     await page.goto('/')
     const cortina = page.locator('[data-preloader]')
     await expect(cortina).toBeVisible()
-    // o desenho acaba em 2,3 s, mas a API só responde com 2 s + o que já levou
-    await page.waitForTimeout(2400)
-    await expect(cortina).toBeVisible()
+    // o desenho acaba em 1,5 s, mas a API só responde depois de 3 s
+    await page.waitForTimeout(2200)
+    await expect(cortina).not.toHaveClass(/pl-saindo/)
     await expect(cortina).toHaveCount(0, { timeout: 7000 })
     await expect(page.locator('h1')).toBeVisible()
   })
@@ -66,7 +73,7 @@ test.describe('abertura de marca', () => {
 })
 
 test.describe('abertura de marca · movimento reduzido', () => {
-  test.use({ abertura: true, reducedMotion: 'reduce' })
+  test.use({ reducedMotion: 'reduce' })
 
   test('quem pede menos movimento nunca vê a abertura', async ({ page }) => {
     await abrirSite(page)

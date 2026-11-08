@@ -8,6 +8,8 @@ import { abrirSite, expect, test } from './ajuda'
 /** começa a rolar e espera o GSAP chegar (ele só é baixado quando a pessoa rola) */
 async function comMovimento(page: Page, ancora = '') {
   await abrirSite(page, ancora)
+  // com movimento ligado a abertura de marca aparece: espera ela subir
+  await expect(page.locator('[data-preloader]')).toHaveCount(0, { timeout: 7000 })
   await page.waitForLoadState('load')
   if (!ancora) await page.mouse.wheel(0, 1)
   await expect(page.locator('html')).toHaveAttribute('data-movimento', 'ligado')
