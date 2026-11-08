@@ -60,6 +60,11 @@ describe('páginas (public/_headers)', () => {
       expect(csp['frame-ancestors']).toEqual(["'none'"])
     })
 
+    it('fontes só do próprio site (nada de Google Fonts)', () => {
+      expect(csp['font-src']).toEqual(["'self'"])
+      expect(csp['style-src']).toEqual(["'self'", "'unsafe-inline'"])
+    })
+
     it('o padrão é fechado e nenhuma diretiva libera qualquer origem (*)', () => {
       expect(csp['default-src']).toEqual(["'self'"])
       for (const [nome, valores] of Object.entries(csp)) {
@@ -75,8 +80,6 @@ describe('páginas (public/_headers)', () => {
         'data:',
         'blob:',
         "'unsafe-inline'",
-        'https://fonts.googleapis.com',
-        'https://fonts.gstatic.com',
         'https://basemaps.cartocdn.com',
         'https://*.basemaps.cartocdn.com',
         'https://tile.openstreetmap.org',

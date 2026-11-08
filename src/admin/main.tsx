@@ -12,6 +12,7 @@ import { AvisoEspaco, PaginaConta, PaginaContatos } from './Paginas'
 import { PaginaTextos } from './Textos'
 import { PaginaAuditoria, PaginaUsuarios, TrocaObrigatoria } from './Equipe'
 import { Carregando, Marca, ProvedorAvisos, useAvisar } from './ui'
+import './fontes'
 import './admin.css'
 
 type Aba =
