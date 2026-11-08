@@ -1,5 +1,6 @@
 import { CONTATO, LOCAL, RODAPE, linkInstagram, linkTelefone, linkWhatsapp, telefoneFormatado } from '../content/site'
 import Linhas from './Linhas'
+import { LogoNaCaixa } from './Logo'
 
 const nav = [
   { label: 'Quem é',      href: '#sobre' },
@@ -24,7 +25,7 @@ export default function Footer() {
           {/* Brand */}
           <div className="sm:col-span-2 lg:col-span-1">
             <a href="#" aria-label="Stewer Gabriel" className="group inline-flex items-center gap-2">
-              <img src="./photos/logo1.png" alt="" className="h-14 w-auto object-contain" />
+              <LogoNaCaixa altura={56} />
               <span className="font-serif text-cream text-lg tracking-wide group-hover:text-gold transition-colors">
                 Stewer Gabriel
               </span>

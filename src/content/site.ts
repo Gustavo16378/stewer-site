@@ -183,7 +183,7 @@ export const CORTES: Foto[] = [
   { src: '/portfolioImgs/corte2.jpeg', alt: 'Corte masculino feito por Stewer Gabriel', largura: 720, altura: 1280 },
   { src: '/portfolioImgs/corte3.jpeg', alt: 'Corte masculino feito por Stewer Gabriel', largura: 720, altura: 1280 },
   { src: '/portfolioImgs/corte4.jpeg', alt: 'Corte masculino feito por Stewer Gabriel', largura: 970, altura: 1280 },
-  { src: '/portfolioImgs/corte5.png', alt: 'Corte masculino feito por Stewer Gabriel', largura: 605, altura: 785 },
+  { src: '/portfolioImgs/corte5.jpeg', alt: 'Corte masculino feito por Stewer Gabriel', largura: 605, altura: 785 },
 ]
 
 /** vídeos do portfólio ficam no código (public/videosImgs) */

@@ -81,7 +81,7 @@ sequenceDiagram
   participant N as Navegador
   participant A as API
   participant D as D1
-  N->>A: GET /api/conteudo (até 2,5 s)
+  N->>A: GET /api/conteudo (já pedido pelo HTML, até 2,5 s)
   A->>D: um batch: 7 listas + config + textos
   D-->>A: linhas visíveis, já com as fotos
   A-->>N: JSON (sem ids, sem ordem, sem versão)
@@ -94,6 +94,60 @@ propósito: o mapa e as animações de entrada leem o conteúdo uma vez, na
 montagem. O resultado é que o site com o banco fica idêntico ao de antes,
 pixel por pixel (conferido comparando capturas da página inteira no
 computador e no celular).
+
+## Como a página abre (desempenho)
+
+A meta é a do Google para um celular com 4G lento: a maior coisa da tela
+(a foto da abertura) em até 2,5 s, nada pulando de lugar e o processador
+livre para responder. Medido a cada push (ver [testes](testes.md#desempenho)).
+
+```mermaid
+sequenceDiagram
+  participant H as HTML
+  participant E as Entrada<br/>(main.tsx, sem React)
+  participant R as React<br/>(inicio.tsx)
+  participant A as API
+  H->>A: preload de /api/conteudo
+  H->>E: script de entrada
+  H->>R: modulepreload do React, em paralelo
+  E->>E: abertura de marca (o S sendo traçado)
+  A-->>E: conteúdo
+  E->>E: já pede a primeira foto, com prioridade
+  R->>R: monta o topo, e o resto em fatias (startTransition)
+  E->>E: a cortina sobe quando o desenho acabou e o site montou
+  Note over E,R: depois, sob demanda:<br/>GSAP quando a pessoa rola,<br/>Leaflet quando chega perto do mapa
+```
+
+- **A entrada não tem React** (`src/main.tsx`): roda assim que chega, mostra
+  a abertura de marca, pega o conteúdo e começa a baixar a primeira foto,
+  enquanto o React chega em paralelo (`src/inicio.tsx`, pré-carregado por um
+  plugin no `vite.config.ts`).
+- **Abertura de marca** (`src/preloader.ts` e `.css`): o S do logo (vetor em
+  `src/lib/logo.ts`) traçado com `stroke-dashoffset`, em CSS puro. Cobre a
+  espera pelo conteúdo em vez de somar a ela. Uma vez por sessão; nunca para
+  quem pede menos movimento; nunca prende o site (sobe em até 6 s).
+- **O resto da página** monta numa transição do React, em fatias: montar
+  tudo de uma vez travava o processador do celular por ~200 ms.
+- **Movimento de rolagem** (`src/lib/movimento.ts`): GSAP com ScrollTrigger e
+  SplitText, ligado por atributos no HTML (`data-revelar`, `data-contar`,
+  `data-parallax`). Só é baixado quando a pessoa começa a rolar.
+- **Mapa** (`src/lib/mapa-site.ts`): o Leaflet só é baixado a 600 px da seção.
+- **Fontes** servidas pelo próprio site (`@fontsource`), só o subconjunto
+  latino e os pesos usados.
+
+## Mapa
+
+O fundo escuro do mapa tenta três fontes, nesta ordem (`src/lib/mapa.ts`):
+
+1. **CARTO** `dark_all`, o visual original do design, quando há chave em
+   `src/lib/mapa-fontes.ts` (desde setembro de 2026 a CARTO exige chave);
+2. **OpenFreeMap** escuro, em vetor (MapLibre), sem chave nenhuma;
+3. **OpenStreetMap** padrão escurecido por filtro, para quando o OpenFreeMap
+   está fora ou o aparelho não tem WebGL.
+
+A troca é automática quando os pedaços do mapa falham. O mesmo fundo vale
+para o minimapa do painel, onde o Stewer cola o link do Google Maps ou
+arrasta o alfinete.
 
 ## Fotos e vídeos
 
@@ -131,10 +185,15 @@ troca de um campo só e o resultado é sempre o que a pessoa vê.
 
 ## Segurança
 
+O resumo por risco do OWASP Top 10, com o teste de cada controle, está em
+[`SECURITY.md`](../SECURITY.md).
+
 - Senha: PBKDF2-SHA256, 100 mil iterações, salt por usuário. O hash é
   calculado igual na API e no script de criar acesso.
 - Sessão: JWT HS256 no cookie `sg_sessao`, `HttpOnly`, `SameSite=Strict`,
-  `Path=/api`, `Secure` em HTTPS, 8 horas.
+  `Path=/api`, `Secure` em HTTPS, 8 horas, apontando para uma linha da
+  tabela `sessoes`. "Sair" apaga a linha; trocar a senha apaga as outras;
+  senha temporária e acesso removido apagam todas.
 - CSRF: além do `SameSite`, todo pedido que muda dados precisa vir da
   própria origem.
 - Login trava por 15 minutos depois de 5 erros no mesmo e-mail.
@@ -144,6 +203,11 @@ troca de um campo só e o resultado é sempre o que a pessoa vê.
   recusado (pode carregar script).
 - Conteúdo: o React escapa todo texto; o único HTML montado à mão (o rótulo
   do marcador do mapa) passa por escape. Testado no E2E.
+- Cabeçalhos: CSP sem script inline nem origem solta, `nosniff`, sem iframe
+  de outro site, HSTS (`public/_headers` para as páginas,
+  `functions/_lib/http.ts` para a API).
+- SSRF: o link curto do mapa é aberto pelo servidor, só se for do Google.
+- Dependências: `npm audit` na CI, Dependabot e CodeQL.
 
 ## Decisões
 
@@ -156,3 +220,8 @@ troca de um campo só e o resultado é sempre o que a pessoa vê.
 | Conteúdo trocado antes do render | mantém o site idêntico ao original, sem piscar |
 | Painel com a identidade do site | o Stewer reconhece a própria marca; o painel não parece um sistema genérico |
 | Uma rota para as sete listas | as regras de cada campo moram num lugar só e são testadas uma vez |
+| Sessão no banco, além do JWT | um JWT sozinho não tem como ser revogado: "Sair" precisa valer de verdade |
+| Abertura de marca em CSS, não GSAP | aparece em ~300 ms, antes do React e do GSAP chegarem, e cobre a espera em vez de somar |
+| GSAP só quando a pessoa rola | antes disso nada abaixo da dobra aparece; baixar e rodar o GSAP na abertura travava o celular ~250 ms |
+| Fontes no próprio site | o CSS do Google Fonts bloqueava a primeira pintura e mandava o IP do visitante ao Google |
+| Três fontes para o fundo do mapa | a CARTO passou a exigir chave e o site mostrava "API KEY REQUIRED"; agora nunca fica sem mapa |

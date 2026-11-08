@@ -12,7 +12,7 @@ export default function Portfolio() {
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-16 gap-6">
           <div className="fade-up">
             <p className="text-sand text-[10px] tracking-ultra uppercase">{PORTFOLIO.rotulo}</p>
-            <h2 className="mt-4 font-serif text-[clamp(2.5rem,5vw,3.5rem)] text-cream">{PORTFOLIO.titulo}</h2>
+            <h2 data-revelar="linhas" className="mt-4 font-serif text-[clamp(2.5rem,5vw,3.5rem)] text-cream">{PORTFOLIO.titulo}</h2>
             <div className="mt-5 w-10 h-px bg-gold" />
           </div>
           <a

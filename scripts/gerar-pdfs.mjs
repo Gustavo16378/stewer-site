@@ -28,10 +28,12 @@ const saida = path.join(raiz, 'docs', 'pdf')
 
 const DOCUMENTOS = [
   { arquivo: 'requisitos.md', titulo: 'Requisitos', resumo: 'Atores, restrições, requisitos funcionais e não funcionais.' },
-  { arquivo: 'arquitetura.md', titulo: 'Arquitetura', resumo: 'Camadas, fluxos, fotos, edição simultânea, segurança e decisões técnicas.' },
+  { arquivo: 'arquitetura.md', titulo: 'Arquitetura', resumo: 'Camadas, como a página abre, mapa, fotos, edição simultânea, segurança e decisões técnicas.' },
   { arquivo: 'banco.md', titulo: 'Modelo do banco', resumo: 'Diagrama entidade-relacionamento, tabelas, regras e migrations.' },
   { arquivo: 'api.md', titulo: 'Referência da API', resumo: 'Rotas, formatos de pedido e resposta, erros e sessão.' },
-  { arquivo: 'testes.md', titulo: 'Plano e relatório de testes', resumo: 'Estratégia em caixa branca, cinza e preta, rastreabilidade e achados.' },
+  { arquivo: 'testes.md', titulo: 'Plano e relatório de testes', resumo: 'Caixa branca, cinza e preta, segurança, desempenho, rastreabilidade e achados.' },
+  // o SECURITY.md fica na raiz, onde o GitHub o mostra na aba Security
+  { arquivo: '../SECURITY.md', pdf: 'seguranca', titulo: 'Segurança', resumo: 'Os controles pelo OWASP Top 10 e onde cada um é testado.' },
   { arquivo: 'manual-do-painel.md', titulo: 'Manual do painel', resumo: 'Como o Stewer usa o painel, em linguagem simples.' },
 ]
 
@@ -255,7 +257,7 @@ try {
   }))
 
   for (const c of capitulos) {
-    const nome = c.arquivo.replace(/\.md$/, '')
+    const nome = c.pdf ?? c.arquivo.replace(/\.md$/, '')
     const capa = await imprimir(navegador, capaHtml(c.titulo, c.resumo), temporaria, `${nome}-capa`, {})
     const conteudo = await imprimir(navegador, corpoHtml([c], false), temporaria, nome, {
       displayHeaderFooter: true,
@@ -269,7 +271,7 @@ try {
   const titulo = 'Documentação completa'
   const capa = await imprimir(
     navegador,
-    capaHtml(titulo, 'Requisitos, arquitetura, banco de dados, API, testes e manual do painel do site do Stewer Gabriel.'),
+    capaHtml(titulo, 'Requisitos, arquitetura, banco de dados, API, testes, segurança e manual do painel do site do Stewer Gabriel.'),
     temporaria,
     'completa-capa',
     {},

@@ -6,10 +6,18 @@
 
 const SEM_CACHE = { 'Cache-Control': 'no-store' }
 
+/** os mesmos de public/_headers, que não vale para as Functions */
+export const SEGURANCA = {
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
+}
+
 export function json(dados: unknown, status = 200, cabecalhos: HeadersInit = {}) {
   return new Response(JSON.stringify(dados), {
     status,
-    headers: { 'Content-Type': 'application/json; charset=utf-8', ...SEM_CACHE, ...cabecalhos },
+    headers: { 'Content-Type': 'application/json; charset=utf-8', ...SEGURANCA, ...SEM_CACHE, ...cabecalhos },
   })
 }
 
@@ -54,8 +62,10 @@ export async function tratar(fn: () => Promise<Response>): Promise<Response> {
   }
 }
 
+/** só dígitos: "0x1", "1e3", " 1" e "-1" não viram número de registro */
 export function idDaRota(valor: string | string[] | undefined): number {
-  const id = Number(Array.isArray(valor) ? valor[0] : valor)
-  if (!Number.isInteger(id) || id <= 0) throw new ErroHttp('Registro não encontrado.', 404)
+  const texto = String(Array.isArray(valor) ? valor[0] : (valor ?? ''))
+  const id = /^\d{1,15}$/.test(texto) ? Number(texto) : NaN
+  if (!Number.isSafeInteger(id) || id <= 0) throw new ErroHttp('Registro não encontrado.', 404)
   return id
 }

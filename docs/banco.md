@@ -101,6 +101,7 @@ gravar e conta esse uso antes de deixar apagar uma foto.
 ```mermaid
 erDiagram
   usuarios ||--o{ auditoria : "fez"
+  usuarios ||--o{ sessoes : "está logado em"
   usuarios {
     int id PK
     text nome
@@ -119,6 +120,12 @@ erDiagram
     text alvo
     text detalhe
     text criado_em
+  }
+  sessoes {
+    text id PK "128 bits aleatórios"
+    int usuario_id FK "CASCADE: tirar o acesso apaga as sessões"
+    text criado_em
+    text expira_em "8 horas depois"
   }
   tentativas {
     int id PK
@@ -143,6 +150,7 @@ erDiagram
 | `textos` | textos e fotos fixos trocados no painel | todas as seções |
 | `configuracoes` | `whatsapp`, `instagram`, `mensagem`, `latitude`, `longitude` | botões, contato, mapa |
 | `usuarios` | quem entra no painel | não aparece |
+| `sessoes` | cada login aberto (o token do cookie aponta para uma linha) | não aparece |
 | `tentativas` | freio de login | não aparece |
 | `auditoria` | quem fez o quê | não aparece |
 
@@ -156,7 +164,9 @@ Mesmo que a API tivesse um bug, o banco recusa:
   existe (FOREIGN KEY);
 - apagar uma foto em uso por uma lista (FOREIGN KEY com RESTRICT);
 - e-mail repetido, sem diferenciar maiúsculas (UNIQUE com NOCASE);
-- ação de auditoria fora da lista (CHECK).
+- ação de auditoria fora da lista (CHECK);
+- sessão de pessoa que não existe (FOREIGN KEY), e as sessões somem junto
+  com a pessoa (CASCADE).
 
 ## Migrations
 
@@ -164,6 +174,8 @@ Mesmo que a API tivesse um bug, o banco recusa:
 |---|---|
 | `0001_schema.sql` | cria todas as tabelas e índices |
 | `0002_seed.sql` | conteúdo que já estava no site, gerado do código |
+| `0003_sessoes.sql` | sessões no servidor: "Sair" e troca de senha encerram o token |
+| `0004_foto_leve.sql` | a foto `corte5` passa de PNG (871 KB) a JPEG (96 KB) |
 
 Regra de ouro (detalhada no [CONTRIBUTING](../CONTRIBUTING.md#banco)):
 **migration nova nunca altera uma antiga** e é aplicada em produção antes do
@@ -179,5 +191,6 @@ npm run db:remoto   # produção
 O plano gratuito do D1 aceita 500 MB por banco. Quase todo o peso são as
 fotos enviadas, cerca de 0,3 MB cada depois da redução: dá espaço para mais
 de mil fotos. Texto quase não ocupa. As tentativas de login com mais de um
-dia são apagadas a cada login, e a auditoria guarda um ano. O painel mostra
+dia são apagadas a cada login, as sessões vencidas também, e a auditoria
+guarda um ano. O painel mostra
 o uso em "Minha conta" e avisa no topo a partir de 70%.

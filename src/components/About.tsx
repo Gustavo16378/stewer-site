@@ -11,6 +11,7 @@ export default function About() {
           {/* Photo column */}
           <div className="relative fade-up">
             <img
+              data-revelar="foto"
               src={SOBRE.foto.src}
               alt={SOBRE.foto.alt}
               width={SOBRE.foto.largura}
@@ -34,7 +35,7 @@ export default function About() {
           <div>
             <p className="text-sand text-[10px] tracking-ultra uppercase fade-up">{SOBRE.rotulo}</p>
 
-            <h2 className="mt-4 font-serif text-[clamp(2.5rem,5vw,3.5rem)] text-cream leading-tight fade-up fade-up-d1">
+            <h2 data-revelar="linhas" className="mt-4 font-serif text-[clamp(2.5rem,5vw,3.5rem)] text-cream leading-tight">
               <Linhas linhas={SOBRE.titulo} />
             </h2>
 
@@ -60,7 +61,11 @@ export default function About() {
                   <Fragment key={i}>
                     {i > 0 && <div className="w-px h-10 bg-wire" />}
                     <div>
-                      <p className="font-serif text-3xl text-cream">{n.valor}</p>
+                      <p className="font-serif text-3xl text-cream">
+                        {/* conta até o valor ao aparecer (lib/movimento.ts); o leitor de tela lê o valor certo */}
+                        <span aria-hidden="true" data-contar={n.valor}>{n.valor}</span>
+                        <span className="sr-only">{n.valor}</span>
+                      </p>
                       <p className="text-sand text-[10px] tracking-ultra uppercase mt-1">{n.legenda}</p>
                     </div>
                   </Fragment>

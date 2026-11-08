@@ -17,6 +17,19 @@ import type { Env } from '../../functions/_lib/tipos'
 
 const env = { JWT_SECRET: 'x'.repeat(40) } as Env
 const usuario = { id: 7, nome: 'Stewer', email: 'stewer@exemplo.com' }
+const SID = 'sessao-de-teste'
+
+const b64url = (o: unknown) =>
+  btoa(JSON.stringify(o)).replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_')
+
+/** assina cabeçalho + carga quaisquer com o segredo certo: o pior caso, alguém que conhece o formato */
+async function forjar(cabecalho: unknown, carga: unknown, segredo = env.JWT_SECRET) {
+  const dados = `${b64url(cabecalho)}.${b64url(carga)}`
+  const chave = await crypto.subtle.importKey('raw', new TextEncoder().encode(segredo), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'])
+  const ass = new Uint8Array(await crypto.subtle.sign('HMAC', chave, new TextEncoder().encode(dados)))
+  return `${dados}.${btoa(String.fromCharCode(...ass)).replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_')}`
+}
+const valida = () => ({ sub: 7, nome: 'Stewer', email: 'x', exp: Math.floor(Date.now() / 1000) + 60, sid: SID })
 
 afterEach(() => vi.useRealTimers())
 
@@ -60,14 +73,46 @@ describe('RNF01 · hash de senha', () => {
 
 describe('RNF02 · sessão JWT', () => {
   it('assina e verifica um token válido', async () => {
-    const token = await assinar(env, usuario)
+    const token = await assinar(env, usuario, SID)
     expect(token.split('.')).toHaveLength(3)
     const carga = await verificar(env, token)
-    expect(carga).toMatchObject({ sub: 7, nome: 'Stewer', email: 'stewer@exemplo.com' })
+    expect(carga).toMatchObject({ sub: 7, nome: 'Stewer', email: 'stewer@exemplo.com', sid: SID })
+  })
+
+  it('o token forjado do jeito certo passa (prova de que os testes abaixo isolam um defeito só)', async () => {
+    expect(await verificar(env, await forjar({ alg: 'HS256', typ: 'JWT' }, valida()))).not.toBeNull()
+  })
+
+  it.each([
+    ['alg none', { alg: 'none', typ: 'JWT' }],
+    ['alg NONE', { alg: 'NONE' }],
+    ['alg HS512', { alg: 'HS512' }],
+    ['alg RS256 (confusão de algoritmo)', { alg: 'RS256' }],
+    ['sem alg', { typ: 'JWT' }],
+  ])('recusa cabeçalho com %s, mesmo com a assinatura certa', async (_, cab) => {
+    expect(await verificar(env, await forjar(cab, valida()))).toBeNull()
+  })
+
+  it('recusa "alg: none" sem assinatura nenhuma', async () => {
+    const t = `${b64url({ alg: 'none' })}.${b64url(valida())}.`
+    expect(await verificar(env, t)).toBeNull()
+  })
+
+  it.each([
+    ['sub texto', { sub: '7' }],
+    ['sub zero', { sub: 0 }],
+    ['sub negativo', { sub: -1 }],
+    ['sub fracionado', { sub: 1.5 }],
+    ['sem sessão', { sid: undefined }],
+    ['sessão número', { sid: 123 }],
+    ['exp texto', { exp: '9999999999' }],
+    ['sem exp', { exp: undefined }],
+  ])('recusa carga com %s', async (_, troca) => {
+    expect(await verificar(env, await forjar({ alg: 'HS256' }, { ...valida(), ...troca }))).toBeNull()
   })
 
   it('recusa token com a carga adulterada', async () => {
-    const [cab, , ass] = (await assinar(env, usuario)).split('.')
+    const [cab, , ass] = (await assinar(env, usuario, SID)).split('.')
     const falsa = btoa(JSON.stringify({ sub: 1, nome: 'Invasor', email: 'x', exp: 9e9 }))
       .replace(/=+$/, '')
       .replace(/\+/g, '-')
@@ -76,14 +121,14 @@ describe('RNF02 · sessão JWT', () => {
   })
 
   it('recusa token assinado com outro segredo', async () => {
-    const token = await assinar({ JWT_SECRET: 'y'.repeat(40) } as Env, usuario)
+    const token = await assinar({ JWT_SECRET: 'y'.repeat(40) } as Env, usuario, SID)
     expect(await verificar(env, token)).toBeNull()
   })
 
   it('recusa token expirado (8 horas)', async () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2026-11-03T12:00:00Z'))
-    const token = await assinar(env, usuario)
+    const token = await assinar(env, usuario, SID)
     vi.setSystemTime(new Date('2026-11-03T19:59:00Z'))
     expect(await verificar(env, token)).not.toBeNull()
     vi.setSystemTime(new Date('2026-11-03T20:00:01Z'))
@@ -95,8 +140,8 @@ describe('RNF02 · sessão JWT', () => {
   })
 
   it('falha alto quando o JWT_SECRET não está configurado ou é curto', async () => {
-    await expect(assinar({ JWT_SECRET: '' } as Env, usuario)).rejects.toThrow(/JWT_SECRET/)
-    await expect(assinar({ JWT_SECRET: 'curto' } as Env, usuario)).rejects.toThrow(/JWT_SECRET/)
+    await expect(assinar({ JWT_SECRET: '' } as Env, usuario, SID)).rejects.toThrow(/JWT_SECRET/)
+    await expect(assinar({ JWT_SECRET: 'curto' } as Env, usuario, SID)).rejects.toThrow(/JWT_SECRET/)
   })
 })
 

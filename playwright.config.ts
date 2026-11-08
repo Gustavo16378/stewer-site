@@ -9,7 +9,13 @@ import { defineConfig, devices } from '@playwright/test'
  * CHROME_PATH=/caminho/do/chrome npm run test:e2e
  */
 const PORTA = 8799
-const chrome = process.env.CHROME_PATH ? { launchOptions: { executablePath: process.env.CHROME_PATH } } : {}
+// WebGL por software: o mapa de reserva (OpenFreeMap, em vetor) precisa dele
+// mesmo nas máquinas do CI, que não têm placa de vídeo
+const launchOptions = {
+  args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'],
+  ...(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {}),
+}
+const chrome = { launchOptions }
 
 export default defineConfig({
   testDir: 'tests/e2e',

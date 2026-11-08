@@ -38,6 +38,9 @@ liga um ao outro.
 | RF04 | Textos e fotos fixos de cada seção (abertura, quem é, serviços, consultoria, ensino, portfólio, onde atende, contato, rodapé) vêm do banco quando foram trocados no painel. |
 | RF05 | WhatsApp (botões e telefone), mensagem pronta, Instagram e o local do mapa (marcador, coordenadas, rota e Google Maps) são os configurados no painel. |
 | RF06 | Os vídeos do portfólio e das aulas continuam no código e aparecem intercalados com as fotos do banco. |
+| RF07 | O mapa nunca mostra aviso de chave: usa o fundo escuro da CARTO quando há chave; sem ela, ou se falhar, o OpenFreeMap escuro; sem ele (ou sem WebGL), o OpenStreetMap escurecido. O mapa só é baixado quando a pessoa chega perto dele. |
+| RF08 | Na primeira visita da sessão, uma abertura de marca desenha o logo e o nome e sobe revelando o site, sem nunca prender o site. Ao rolar, títulos, fotos e números entram com movimento. Quem pede menos movimento no sistema vê tudo parado, sem abertura. |
+| RF09 | Um link com âncora (por exemplo `#onde-atende`) abre direto na seção. |
 
 ### Painel
 
@@ -48,7 +51,7 @@ liga um ao outro.
 | RF12 | O Stewer envia fotos, corrige a descrição, apaga as que não estão em uso e baixa uma ou todas (.zip). |
 | RF13 | Fotos enviadas são reduzidas (até 1600px) e convertidas para WebP no navegador, antes de subir. |
 | RF14 | O Stewer edita os textos e fotos fixos de cada seção e pode voltar qualquer campo ao original. |
-| RF15 | O Stewer troca WhatsApp, mensagem pronta, Instagram e o local do mapa (colando as coordenadas do Google Maps, com prévia), e a própria senha. |
+| RF15 | O Stewer troca WhatsApp, mensagem pronta, Instagram, o endereço e horário, e o local do mapa (colando o link do Google Maps, inclusive o curto do botão Compartilhar, ou as coordenadas, e ajustando o alfinete no minimapa), e a própria senha. |
 | RF16 | Quem tem acesso dá e tira acesso de outra pessoa e gera senha temporária para quem esqueceu. |
 | RF17 | Quem entra com senha temporária é obrigado a criar uma senha própria antes de usar o painel. |
 | RF18 | Toda alteração e todo login ficam registrados (quem, o quê, quando) e são consultáveis por dia e pessoa. |
@@ -60,8 +63,8 @@ liga um ao outro.
 | id | categoria | requisito |
 |---|---|---|
 | RNF01 | Segurança | Senhas guardadas só como hash PBKDF2-SHA256 com salt por usuário. |
-| RNF02 | Segurança | Sessão em cookie `HttpOnly`, `SameSite=Strict` (e `Secure` em HTTPS), assinada (JWT HS256). |
-| RNF03 | Segurança | Pedido que altera dados vindo de outra origem é recusado (CSRF). |
+| RNF02 | Segurança | Sessão em cookie `HttpOnly`, `SameSite=Strict` (e `Secure` em HTTPS), assinada (JWT, só HS256) e gravada no servidor: "Sair" encerra a sessão, trocar a senha encerra as outras, senha temporária e acesso removido encerram todas. |
+| RNF03 | Segurança | Pedido que altera dados vindo de outra origem é recusado (CSRF). Páginas e API com cabeçalhos de segurança (CSP sem script inline, `nosniff`, sem iframe de outro site, HSTS). |
 | RNF04 | Segurança | Login trava 15 minutos depois de 5 senhas erradas; a mensagem não revela se o e-mail existe. |
 | RNF05 | Segurança | Nenhum nome de tabela ou coluna vem do pedido; valores sempre por bind (sem SQL injection). |
 | RNF06 | Segurança | Upload aceita só JPG, PNG e WebP conferidos pelos bytes, até 1,5 MB. |
@@ -75,6 +78,9 @@ liga um ao outro.
 | RNF14 | Disponibilidade | O site público nunca fica em branco por causa do backend (ver RF03). |
 | RNF15 | Manutenção | Esquema do banco versionado em migrations; cada parte testada automaticamente no CI. |
 | RNF16 | Fidelidade | O site montado com o conteúdo do banco é visualmente igual ao site anterior ao painel. |
+| RNF17 | Segurança | O servidor só abre links do Google (link curto do mapa), por HTTPS, sem usuário nem porta, com no máximo 6 redirecionamentos (sem SSRF). Dependências sem vulnerabilidade conhecida em produção. |
+| RNF18 | Desempenho | Core Web Vitals "bons" do Google no celular com 4G lento: LCP ≤ 2,5 s, CLS ≤ 0,1, TBT ≤ 200 ms, INP ≤ 200 ms. Abertura do site com até 65 KB de JavaScript; nada de outro servidor na abertura. Lighthouse ≥ 90 em desempenho e ≥ 95 no resto. |
+| RNF19 | Desempenho | `/api/conteudo` com p95 ≤ 300 ms; a API aguenta 100 conexões simultâneas sem erro 5xx e uma força bruta no login sem cair. |
 
 ## Fora do escopo
 

@@ -2,6 +2,48 @@
 
 Mudanças do site, no formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [2.1.0] · 2026-11-08
+
+### Adicionado
+
+- Abertura de marca na primeira visita da sessão: o S do Stewer traçado em
+  dourado, o nome subindo letra por letra e a cortina revelando o site.
+- Movimento de rolagem: títulos sobem linha por linha, fotos se abrem,
+  números contam e a abertura tem parallax no computador. Quem pede menos
+  movimento no sistema vê o site parado.
+- Logo em vetor no topo e no rodapé.
+- Mapa: link do Google Maps (inclusive o curto, do botão Compartilhar) e
+  alfinete arrastável no painel; endereço e horário na mesma página.
+- `robots.txt` e `sitemap.xml`.
+- Suíte de segurança pelo OWASP Top 10 (318 testes: SQL injection, sessão,
+  cabeçalhos, SSRF, upload), segurança no navegador e fiscal da CSP em todo
+  E2E; `SECURITY.md`, CodeQL, Dependabot e `npm audit` na CI.
+- Suíte de desempenho: orçamento de peso do build, Core Web Vitals no
+  navegador com 4G lento, carga e estresse da API e Lighthouse na CI.
+- Migrações `0003_sessoes` e `0004_foto_leve`.
+
+### Mudado
+
+- Sessões gravadas no servidor: "Sair" encerra o token de verdade, trocar a
+  senha encerra as outras sessões, e senha temporária e acesso removido
+  encerram todas. Quem estava logado precisa entrar de novo uma vez.
+- Página abre bem mais rápido no celular (LCP de 3,2 s para ~1,7 s com 4G
+  lento): conteúdo pré-carregado com o HTML, entrada sem React, primeira
+  foto com prioridade, mapa e GSAP sob demanda, resto da página montado em
+  fatias, fontes servidas pelo próprio site (sem Google Fonts), fotos
+  recomprimidas e cache longo para os arquivos do build.
+- Cabeçalhos de segurança em todas as páginas e respostas da API.
+
+### Corrigido
+
+- O mapa mostrava "API KEY REQUIRED": a CARTO passou a exigir chave. Agora
+  o fundo cai para o OpenFreeMap e, sem ele, para o OpenStreetMap escurecido.
+- Link com âncora (`#onde-atende`) abria no topo da página.
+- Títulos em linhas eram lidos colados por leitor de tela e pelo Google.
+- Rota de API inexistente respondia com a página do site.
+- O filtro de pessoa da auditoria ignorava valor inválido.
+- Contraste do "Scroll" da abertura abaixo do AA.
+
 ## [2.0.0] · 2026-11-07
 
 ### Adicionado

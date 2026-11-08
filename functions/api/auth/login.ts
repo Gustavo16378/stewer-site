@@ -1,4 +1,4 @@
-import { assinar, conferirSenha, cookieDeSessao } from '../../_lib/auth'
+import { abrirSessao, conferirSenha, cookieDeSessao } from '../../_lib/auth'
 import { registro } from '../../_lib/auditoria'
 import { ErroHttp, json, lerJson, tratar } from '../../_lib/http'
 import type { Funcao } from '../../_lib/tipos'
@@ -58,7 +58,7 @@ export const onRequestPost: Funcao = ({ request, env }) =>
       // auditoria guarda um ano; depois disso some sozinha
       env.DB.prepare(`DELETE FROM auditoria WHERE criado_em < datetime('now', '-1 year')`),
     ])
-    const token = await assinar(env, u)
+    const token = await abrirSessao(env, u)
     return json(
       { usuario: { id: u.id, nome: u.nome, email: u.email, trocarSenha: u.trocar_senha === 1 } },
       200,

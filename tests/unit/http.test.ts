@@ -59,7 +59,7 @@ describe('idDaRota', () => {
     expect(idDaRota('12')).toBe(12)
     expect(idDaRota(['5'])).toBe(5)
   })
-  it.each(['0', '-1', '1.5', 'abc', '1 OR 1=1', undefined])('recusa "%s" com 404', (v) => {
+  it.each(['0', '-1', '1.5', 'abc', '1 OR 1=1', undefined, '0x1', '1e3', ' 1', '1 ', '+1', '', '99999999999999999999', 'Infinity'])('recusa "%s" com 404', (v) => {
     expect(() => idDaRota(v)).toThrow(expect.objectContaining({ status: 404 }))
   })
 })

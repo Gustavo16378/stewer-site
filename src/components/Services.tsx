@@ -11,7 +11,7 @@ export default function Services() {
         {/* Header */}
         <div className="flex flex-col items-center text-center mb-20 fade-up">
           <p className="text-sand text-[10px] tracking-ultra uppercase">{SERVICOS_SECAO.rotulo}</p>
-          <h2 className="mt-4 font-serif text-[clamp(2.5rem,5vw,3.5rem)] text-cream">{SERVICOS_SECAO.titulo}</h2>
+          <h2 data-revelar="linhas" className="mt-4 font-serif text-[clamp(2.5rem,5vw,3.5rem)] text-cream">{SERVICOS_SECAO.titulo}</h2>
           <div className="mt-5 w-10 h-px bg-gold" />
         </div>
 

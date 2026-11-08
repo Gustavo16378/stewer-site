@@ -1,0 +1,48 @@
+name: lighthouse
+
+# Lighthouse no celular (4G lento, CPU 4× mais lenta) e no computador, três
+# rodadas cada, contra o site de verdade: build + API (wrangler) + banco.
+# Reprova se a nota cair de 90 (desempenho) ou 95 (acessibilidade, boas
+# práticas e SEO), ou se LCP, CLS, TBT ou o peso passarem do orçamento.
+# O relatório completo fica num link público temporário, no resumo do job.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: lighthouse-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        tela: [celular, computador]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run build
+
+      - name: Sobe o site com a API e o banco de teste
+        run: |
+          node tests/servidor-teste.mjs --porta 8799 &
+          for i in $(seq 90); do curl -sf http://127.0.0.1:8799/api/conteudo >/dev/null && exit 0; sleep 1; done
+          exit 1
+
+      - uses: treosh/lighthouse-ci-action@v12
+        with:
+          configPath: tests/lighthouse/${{ matrix.tela }}.json
+          uploadArtifacts: true
+          temporaryPublicStorage: true

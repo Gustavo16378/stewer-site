@@ -3,6 +3,7 @@
  * aba "Contatos e mapa". Cada chave tem a sua regra; a validação mora aqui
  * para ser testada sem subir servidor.
  */
+import { ehLinkCurto, noBrasil, pontoDoTexto } from '../../src/lib/coordenadas'
 import { ErroHttp } from './http'
 
 export type Config = {
@@ -50,18 +51,22 @@ export function normalizarMensagem(bruto: unknown) {
 }
 
 /**
- * Coordenadas como o Google Maps copia: "-10.18256, -48.32910".
- * Aceita vírgula decimal ("-10,18256; -48,32910") e confere que o ponto é
- * no Brasil, para um número trocado não jogar o mapa no meio do oceano.
+ * O ponto do mapa, do jeito que o Stewer colar: as coordenadas que o Google
+ * Maps mostra ("-10.18256, -48.32910", também com vírgula decimal) ou um
+ * link do Google Maps que já traga o ponto. Link curto (maps.app.goo.gl)
+ * passa antes por /api/admin/link-mapa. Confere que o ponto é no Brasil,
+ * para um número trocado não jogar o mapa no meio do oceano.
  */
 export function lerCoordenadas(bruto: unknown) {
-  const s = String(bruto ?? '').trim()
-  const m = /^(-?\d{1,2}(?:[.,]\d+)?)\s*[,;\s]\s*(-?\d{1,3}(?:[.,]\d+)?)$/.exec(s)
-  if (!m) throw new ErroHttp('Cole as coordenadas como o Google Maps mostra, por exemplo: -10.18256, -48.32910.')
-  const latitude = Number(m[1].replace(',', '.'))
-  const longitude = Number(m[2].replace(',', '.'))
-  if (latitude < -34 || latitude > 6 || longitude < -74 || longitude > -28) {
-    throw new ErroHttp('Essas coordenadas ficam fora do Brasil. Confira se copiou o ponto certo.')
+  const texto = String(bruto ?? '').trim()
+  const ponto = pontoDoTexto(texto)
+  if (!ponto) {
+    throw new ErroHttp(
+      ehLinkCurto(texto)
+        ? 'Esse link curto precisa ser aberto antes. Cole ele no campo do painel, que ele acha o ponto sozinho.'
+        : 'Cole as coordenadas como o Google Maps mostra (por exemplo: -10.18256, -48.32910) ou o link do lugar.',
+    )
   }
-  return { latitude: String(latitude), longitude: String(longitude) }
+  if (!noBrasil(ponto)) throw new ErroHttp('Essas coordenadas ficam fora do Brasil. Confira se copiou o ponto certo.')
+  return { latitude: String(ponto.latitude), longitude: String(ponto.longitude) }
 }

@@ -38,6 +38,12 @@ describe('RF15 · trocar contatos', () => {
     expect(ultimaAuditoria().detalhe).toBe('Local no mapa')
   })
 
+  it('local do mapa pelo link longo do Google Maps (usa o alfinete do lugar)', async () => {
+    const link = 'https://www.google.com/maps/place/Boss/@-10.19,-48.33,17z/data=!4m6!3m5!8m2!3d-10.2002!4d-48.3303'
+    expect((await painel.put('/api/admin/configuracoes', { coordenadas: link })).status).toBe(200)
+    expect(await config()).toMatchObject({ latitude: '-10.2002', longitude: '-48.3303' })
+  })
+
   it('vários campos de uma vez entram juntos, e a auditoria lista todos', async () => {
     const r = await painel.put('/api/admin/configuracoes', {
       whatsapp: original.whatsapp,
@@ -48,6 +54,34 @@ describe('RF15 · trocar contatos', () => {
     expect(r.status).toBe(200)
     expect(await config()).toEqual(original)
     expect(ultimaAuditoria().detalhe).toBe('WhatsApp, Instagram, Mensagem do WhatsApp, Local no mapa')
+  })
+})
+
+describe('RF15 · POST /api/admin/link-mapa', () => {
+  it('link longo devolve o ponto sem sair para a internet', async () => {
+    const r = await painel.post('/api/admin/link-mapa', {
+      url: 'https://www.google.com/maps/search/?api=1&query=-10.18256053,-48.32910908',
+    })
+    expect(r.status).toBe(200)
+    expect(r.corpo).toEqual({ latitude: -10.18256053, longitude: -48.32910908 })
+  })
+
+  it.each([
+    [{}, /link do Google Maps/],
+    [{ url: 42 }, /link do Google Maps/],
+    [{ url: 'Boss House Palmas' }, /link do Google Maps/],
+    [{ url: 'https://exemplo.com/mapa' }, /link do Google Maps/],
+    [{ url: 'https://www.google.com/maps/@40.71,-74.00,17z' }, /fora do Brasil/],
+  ])('%o → 400', async (corpo, mensagem) => {
+    const r = await painel.post('/api/admin/link-mapa', corpo)
+    expect(r.status).toBe(400)
+    expect(r.corpo.erro).toMatch(mensagem)
+  })
+
+  it('não grava nada: só acha o ponto (quem salva é o PUT de configurações)', async () => {
+    const antes = await config()
+    await painel.post('/api/admin/link-mapa', { url: 'https://www.google.com/maps/@-15.78,-47.93,17z' })
+    expect(await config()).toEqual(antes)
   })
 })
 

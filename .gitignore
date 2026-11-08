@@ -32,4 +32,6 @@ Thumbs.db
 # saídas dos testes
 test-results/
 tests/relatorio-e2e/
+tests/relatorio-carga/
 coverage/
+.lighthouseci/

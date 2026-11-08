@@ -1,8 +1,7 @@
 /**
  * E2E · o painel como o Stewer usa (RF10–RF20, RNF07, RNF11).
  */
-import { expect, test } from '@playwright/test'
-import { ADMIN, abrirSite, api, entrar, semRolagemLateral } from './ajuda'
+import { ADMIN, abrirSite, api, entrar, expect, semRolagemLateral, test } from './ajuda'
 
 const ABAS = ['textos', 'slides', 'numeros', 'servicos', 'etapas', 'topicos', 'aulas', 'cortes', 'contatos', 'fotos', 'usuarios', 'auditoria', 'conta']
 
@@ -99,24 +98,21 @@ test.describe('painel', () => {
     await painel.delete(`/api/admin/cortes/${criado.id}`)
   })
 
-  test('RF15 · trocar o Instagram muda os links do site; a prévia do mapa mostra as coordenadas', async ({ page }) => {
+  test('RF15 · trocar o Instagram muda os links do site', async ({ page }) => {
     await entrar(page)
     await page.goto('/admin#contatos')
-    const insta = page.getByLabel('Instagram')
+    const insta = page.getByRole('textbox', { name: /^Instagram/ })
     await expect(insta).toHaveValue('@stewer.gabriel')
     await insta.fill('https://www.instagram.com/stewer.teste/')
-    await page.getByLabel('Coordenadas').fill('-10.2001, -48.3302')
-    await expect(page.getByText(`10°12'0"S · 48°19'49"W`)).toBeVisible()
-    await page.getByLabel('Coordenadas').fill('-10.18256053, -48.32910908')
-    await page.getByRole('button', { name: 'Salvar contatos e mapa' }).click()
+    await page.getByRole('button', { name: 'Salvar contatos' }).click()
     await expect(page.getByText('Contatos salvos.')).toBeVisible()
 
     await abrirSite(page, '#contato')
     await expect(page.locator('#contato a', { hasText: 'Instagram' })).toHaveAttribute('href', 'https://www.instagram.com/stewer.teste')
 
     await page.goto('/admin#contatos')
-    await page.getByLabel('Instagram').fill('@stewer.gabriel')
-    await page.getByRole('button', { name: 'Salvar contatos e mapa' }).click()
+    await page.getByRole('textbox', { name: /^Instagram/ }).fill('@stewer.gabriel')
+    await page.getByRole('button', { name: 'Salvar contatos' }).click()
     await expect(page.getByText('Contatos salvos.')).toBeVisible()
   })
 
@@ -124,8 +120,67 @@ test.describe('painel', () => {
     await entrar(page)
     await page.goto('/admin#contatos')
     await page.getByRole('textbox', { name: /^WhatsApp/ }).fill('123')
-    await page.getByRole('button', { name: 'Salvar contatos e mapa' }).click()
+    await page.getByRole('button', { name: 'Salvar contatos' }).click()
     await expect(page.getByRole('alert')).toContainText('DDD')
+  })
+
+  test('RF15 · colar o link do Google Maps move o alfinete e muda o mapa do site', async ({ page }) => {
+    await entrar(page)
+    await page.goto('/admin#contatos')
+    const cartao = page.locator('.cartao', { hasText: 'Local no mapa' })
+    await expect(cartao.locator('.mapa-ponto .leaflet-marker-icon')).toBeVisible()
+
+    await cartao.getByLabel('Link do Google Maps ou coordenadas').fill(
+      'https://www.google.com/maps/place/Pal%C3%A1cio/@-10.18,-48.33,17z/data=!4m6!3m5!8m2!3d-10.184296!4d-48.333588',
+    )
+    await cartao.getByRole('button', { name: 'Achar no mapa' }).click()
+    await expect(cartao.locator('.previa-ponto')).toContainText(`Ponto novo, ainda não salvo: 10°11'3"S · 48°20'1"W`)
+
+    // link de outro país: avisa e não mexe no ponto
+    await cartao.getByLabel('Link do Google Maps ou coordenadas').fill('https://www.google.com/maps/@40.7128,-74.006,15z')
+    await cartao.getByRole('button', { name: 'Achar no mapa' }).click()
+    await expect(cartao.getByRole('alert')).toContainText('fora do Brasil')
+
+    await cartao.getByRole('button', { name: 'Salvar local' }).click()
+    await expect(page.getByText('Local salvo.')).toBeVisible()
+    await abrirSite(page, '#onde-atende')
+    await expect(page.locator('#onde-atende')).toContainText(`10°11'3"S · 48°20'1"W`)
+
+    // volta o ponto original
+    await page.goto('/admin#contatos')
+    const de_novo = page.locator('.cartao', { hasText: 'Local no mapa' })
+    await de_novo.getByLabel('Link do Google Maps ou coordenadas').fill('-10.18256053, -48.32910908')
+    await de_novo.getByRole('button', { name: 'Achar no mapa' }).click()
+    await de_novo.getByRole('button', { name: 'Salvar local' }).click()
+    await expect(page.getByText('Local salvo.')).toBeVisible()
+  })
+
+  test('RF15 · tocar no mapa move o alfinete; "Desfazer" volta ao salvo', async ({ page }) => {
+    await entrar(page)
+    await page.goto('/admin#contatos')
+    const cartao = page.locator('.cartao', { hasText: 'Local no mapa' })
+    const mapa = cartao.locator('.mapa-ponto')
+    await expect(mapa.locator('.leaflet-marker-icon')).toBeVisible()
+    const caixa = (await mapa.boundingBox())!
+    await mapa.click({ position: { x: caixa.width * 0.2, y: caixa.height * 0.2 } })
+    await expect(cartao.locator('.previa-ponto')).toContainText('Ponto novo, ainda não salvo')
+    await cartao.getByRole('button', { name: 'Desfazer' }).click()
+    await expect(cartao.locator('.previa-ponto')).toContainText(`No site agora: 10°10'57"S · 48°19'45"W`)
+  })
+
+  test('RF15 · endereço e horário na mesma página, indo para o site', async ({ page }) => {
+    await entrar(page)
+    await page.goto('/admin#contatos')
+    await page.getByLabel('Horário').fill('Ter — Sáb\n10h às 20h')
+    await page.getByRole('button', { name: 'Salvar endereço' }).click()
+    await expect(page.getByText(/Endereço: salvo/)).toBeVisible()
+    await abrirSite(page, '#onde-atende')
+    await expect(page.locator('#onde-atende')).toContainText('10h às 20h')
+
+    await page.goto('/admin#contatos')
+    await page.locator('.campo', { has: page.locator('[id="texto-local.horario"]') }).getByRole('button', { name: 'voltar ao original' }).click()
+    await page.getByRole('button', { name: 'Salvar endereço' }).click()
+    await expect(page.getByText(/Endereço: salvo/)).toBeVisible()
   })
 
   test('RNF07 · duas pessoas no mesmo serviço: a segunda recebe aviso, nada se perde', async ({ browser }) => {

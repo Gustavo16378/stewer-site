@@ -1,7 +1,9 @@
 name: testes
 
 # Roda a pirâmide inteira a cada push e pull request na main:
-# tipos → unitários → banco → API (wrangler + D1 isolado) → E2E e acessibilidade.
+# dependências → tipos → orçamento de peso → unitários → banco → API → segurança
+# → carga e estresse → E2E, acessibilidade e Core Web Vitals.
+# O Lighthouse roda em paralelo, em lighthouse.yml.
 on:
   push:
     branches: [main]
@@ -27,8 +29,14 @@ jobs:
       - name: Dependências
         run: npm ci
 
+      - name: Auditoria de dependências (A06, nada vulnerável no que vai para produção)
+        run: npm run auditoria
+
       - name: Build (inclui checagem de tipos do site, do painel e da API)
         run: npm run build
+
+      - name: Orçamento de peso do build (desempenho)
+        run: npx vitest run --project desempenho
 
       - name: Unitários (caixa branca) com cobertura
         run: npx vitest run --project unit --coverage
@@ -36,13 +44,16 @@ jobs:
       - name: Banco (schema, constraints, migrations)
         run: npm run test:db
 
-      - name: API (contrato, integração, segurança, concorrência)
+      - name: API (contrato, integração, concorrência) e segurança (OWASP Top 10)
         run: npm run test:api
+
+      - name: Carga e estresse da API (autocannon)
+        run: npm run test:carga
 
       - name: Navegador do Playwright
         run: npx playwright install --with-deps chromium
 
-      - name: E2E e acessibilidade
+      - name: E2E, acessibilidade, segurança no navegador e Core Web Vitals
         run: npm run test:e2e
 
       - name: Relatório do E2E

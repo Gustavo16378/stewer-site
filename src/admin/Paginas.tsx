@@ -1,10 +1,13 @@
 /**
- * Páginas do painel que não são lista: contatos e mapa, e a conta
- * (espaço do banco e senha).
+ * Páginas do painel que não são lista: contatos, endereço e mapa, e a
+ * conta (espaço do banco e senha).
  */
-import { useEffect, useState } from 'react'
+import { Suspense, lazy, useEffect, useState } from 'react'
 import { grausMinutos, telefoneFormatado } from '../content/site'
+import { ehLink, noBrasil, pontoDoTexto, textoDoPonto, type Ponto } from '../lib/coordenadas'
+import { CAMPOS_TEXTO } from '../lib/textos'
 import { api } from './api'
+import { EditorTextos, useTextosSalvos } from './Textos'
 import { Carregando, useAvisar } from './ui'
 
 type Espaco = {
@@ -64,41 +67,67 @@ export function CartaoEspaco() {
   )
 }
 
-type Contatos = { whatsapp: string; instagram: string; mensagem: string; coordenadas: string }
+type Contatos = { whatsapp: string; instagram: string; mensagem: string }
 
-/** lê "-10.18, -48.32" do jeito que a API aceita, só para a prévia */
-function previaCoordenadas(s: string) {
-  const m = /^(-?\d{1,2}(?:[.,]\d+)?)\s*[,;\s]\s*(-?\d{1,3}(?:[.,]\d+)?)$/.exec(s.trim())
-  if (!m) return null
-  const lat = Number(m[1].replace(',', '.'))
-  const lng = Number(m[2].replace(',', '.'))
-  return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null
-}
+const MapaPonto = lazy(() => import('./MapaPonto'))
+const CAMPOS_ENDERECO = CAMPOS_TEXTO.filter((c) => c.pagina === 'contatos')
 
 export function PaginaContatos() {
-  const [salvo, setSalvo] = useState<Contatos | null>(null)
-  const [form, setForm] = useState<Contatos | null>(null)
-  const [salvando, setSalvando] = useState(false)
+  const [config, setConfig] = useState<Record<string, string> | null>(null)
+  const [salvos, setSalvos] = useTextosSalvos()
   const avisar = useAvisar()
 
   useEffect(() => {
     api<{ config: Record<string, string> }>('/admin/configuracoes')
-      .then(({ config: c }) => {
-        const v = {
-          whatsapp: telefoneFormatado(c.whatsapp ?? ''),
-          instagram: c.instagram ? `@${c.instagram}` : '',
-          mensagem: c.mensagem ?? '',
-          coordenadas: c.latitude && c.longitude ? `${c.latitude}, ${c.longitude}` : '',
-        }
-        setSalvo(v)
-        setForm(v)
-      })
+      .then(({ config: c }) => setConfig(c))
       .catch((e) => avisar(e.message, 'erro'))
   }, [avisar])
 
+  return (
+    <section className="pagina">
+      <header className="pagina__topo">
+        <div>
+          <h2 className="pagina__titulo">Contatos e mapa</h2>
+          <p className="pagina__descricao">
+            O WhatsApp, o Instagram, o endereço e o ponto do mapa que aparecem no site. Cada parte tem o próprio botão
+            de salvar.
+          </p>
+        </div>
+        <a className="btn btn--fantasma" href="/#onde-atende" target="_blank" rel="noopener">
+          Ver no site ↗
+        </a>
+      </header>
+
+      {!config || !salvos ? (
+        <Carregando />
+      ) : (
+        <>
+          <CartaoContatos config={config} />
+          <div className="bloco-titulo">
+            <h3 className="cartao__titulo">Endereço</h3>
+            <p className="campo__dica">O que aparece no cartão do mapa e no rodapé.</p>
+          </div>
+          <EditorTextos nome="Endereço" campos={CAMPOS_ENDERECO} salvos={salvos} aoSalvar={setSalvos} />
+          <CartaoLocal config={config} aoSalvar={(p) => setConfig((c) => ({ ...c, ...p }))} />
+        </>
+      )}
+    </section>
+  )
+}
+
+function CartaoContatos({ config }: { config: Record<string, string> }) {
+  const inicial = (): Contatos => ({
+    whatsapp: telefoneFormatado(config.whatsapp ?? ''),
+    instagram: config.instagram ? `@${config.instagram}` : '',
+    mensagem: config.mensagem ?? '',
+  })
+  const [salvo, setSalvo] = useState<Contatos>(inicial)
+  const [form, setForm] = useState<Contatos>(inicial)
+  const [salvando, setSalvando] = useState(false)
+  const avisar = useAvisar()
+
   async function salvar(e: React.FormEvent) {
     e.preventDefault()
-    if (!form || !salvo) return
     // manda só o que mudou: o que ninguém mexeu não passa pela validação de novo
     const mudou = Object.fromEntries(Object.entries(form).filter(([k, v]) => v !== salvo[k as keyof Contatos]))
     if (!Object.keys(mudou).length) return avisar('Nada mudou.')
@@ -114,76 +143,165 @@ export function PaginaContatos() {
     }
   }
 
-  const ponto = form ? previaCoordenadas(form.coordenadas) : null
   const mudar = (k: keyof Contatos) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-    setForm((f) => (f ? { ...f, [k]: e.target.value } : f))
+    setForm((f) => ({ ...f, [k]: e.target.value }))
 
   return (
-    <section className="pagina">
-      <header className="pagina__topo">
-        <div>
-          <h2 className="pagina__titulo">Contatos e mapa</h2>
-          <p className="pagina__descricao">
-            O WhatsApp, o Instagram e o ponto do mapa que aparecem no site. O nome do lugar, o endereço e o horário ficam
-            em <a href="#textos">Textos do site</a>, na parte "Onde atende".
-          </p>
-        </div>
-        <a className="btn btn--fantasma" href="/#contato" target="_blank" rel="noopener">
-          Ver no site ↗
-        </a>
-      </header>
+    <form className="cartao cartao--largo" onSubmit={salvar}>
+      <h3 className="cartao__titulo">Contatos</h3>
+      <label className="campo">
+        <span className="campo__rotulo">WhatsApp</span>
+        <input inputMode="tel" value={form.whatsapp} onChange={mudar('whatsapp')} placeholder="(63) 99999-9999" />
+        <span className="campo__dica">Usado nos botões de WhatsApp e no telefone do site.</span>
+      </label>
+      <label className="campo">
+        <span className="campo__rotulo">Mensagem que já vem escrita no WhatsApp</span>
+        <textarea rows={2} maxLength={200} value={form.mensagem} onChange={mudar('mensagem')} />
+        <span className="campo__dica">O cliente toca no botão e o WhatsApp abre com esta mensagem pronta.</span>
+      </label>
+      <label className="campo">
+        <span className="campo__rotulo">Instagram</span>
+        <input value={form.instagram} onChange={mudar('instagram')} placeholder="@stewer.gabriel" />
+        <span className="campo__dica">Só o nome de usuário. Também dá para colar o link do perfil.</span>
+      </label>
+      <div className="envio__acoes">
+        <button type="submit" className="btn btn--primario" disabled={salvando}>
+          {salvando ? 'Salvando…' : 'Salvar contatos'}
+        </button>
+      </div>
+    </form>
+  )
+}
 
-      {!form ? (
-        <Carregando />
-      ) : (
-        <form className="cartao" onSubmit={salvar}>
-          <h3 className="cartao__titulo">Contatos</h3>
-          <label className="campo">
-            <span className="campo__rotulo">WhatsApp</span>
-            <input inputMode="tel" value={form.whatsapp} onChange={mudar('whatsapp')} placeholder="(63) 99999-9999" />
-            <span className="campo__dica">Usado nos botões de WhatsApp e no telefone do site.</span>
-          </label>
-          <label className="campo">
-            <span className="campo__rotulo">Mensagem que já vem escrita no WhatsApp</span>
-            <textarea rows={2} maxLength={200} value={form.mensagem} onChange={mudar('mensagem')} />
-            <span className="campo__dica">O cliente toca no botão e o WhatsApp abre com esta mensagem pronta.</span>
-          </label>
-          <label className="campo">
-            <span className="campo__rotulo">Instagram</span>
-            <input value={form.instagram} onChange={mudar('instagram')} placeholder="@stewer.gabriel" />
-            <span className="campo__dica">Só o nome de usuário. Também dá para colar o link do perfil.</span>
-          </label>
+function CartaoLocal({
+  config,
+  aoSalvar,
+}: {
+  config: Record<string, string>
+  aoSalvar: (c: { latitude: string; longitude: string }) => void
+}) {
+  const salvo: Ponto = { latitude: Number(config.latitude), longitude: Number(config.longitude) }
+  const [ponto, setPonto] = useState<Ponto>(salvo)
+  const [colado, setColado] = useState('')
+  const [buscando, setBuscando] = useState(false)
+  const [erro, setErro] = useState('')
+  const [salvando, setSalvando] = useState(false)
+  const avisar = useAvisar()
 
-          <h3 className="cartao__titulo cartao__titulo--separado">Local no mapa</h3>
-          <label className="campo">
-            <span className="campo__rotulo">Coordenadas</span>
-            <input value={form.coordenadas} onChange={mudar('coordenadas')} placeholder="-10.18256, -48.32910" />
-            <span className="campo__dica">
-              No Google Maps, segure o dedo (ou clique com o botão direito) em cima do lugar: os números aparecem no topo.
-              Toque neles para copiar e cole aqui.
-            </span>
-          </label>
-          {ponto && (
-            <p className="campo__dica">
-              Vai aparecer no site como {grausMinutos(ponto.lat, 'lat')} · {grausMinutos(ponto.lng, 'lng')}.{' '}
-              <a
-                href={`https://www.google.com/maps/search/?api=1&query=${ponto.lat},${ponto.lng}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Conferir no Google Maps ↗
-              </a>
-            </p>
-          )}
+  const mudou = ponto.latitude !== salvo.latitude || ponto.longitude !== salvo.longitude
 
-          <div className="envio__acoes">
-            <button type="submit" className="btn btn--primario" disabled={salvando}>
-              {salvando ? 'Salvando…' : 'Salvar contatos e mapa'}
-            </button>
-          </div>
-        </form>
+  /** lê o que foi colado: coordenadas e link longo na hora; link curto pela API */
+  async function achar(texto: string) {
+    setErro('')
+    if (!texto.trim()) return
+    const direto = pontoDoTexto(texto)
+    if (direto) {
+      if (!noBrasil(direto)) return setErro('Esse ponto fica fora do Brasil. Confira se copiou o lugar certo.')
+      setPonto(direto)
+      return
+    }
+    if (!ehLink(texto)) {
+      return setErro('Cole o link do Google Maps (botão Compartilhar) ou as coordenadas, por exemplo: -10.18256, -48.32910.')
+    }
+    setBuscando(true)
+    try {
+      setPonto(await api<Ponto>('/admin/link-mapa', { method: 'POST', json: { url: texto.trim() } }))
+    } catch (e) {
+      setErro((e as Error).message)
+    } finally {
+      setBuscando(false)
+    }
+  }
+
+  async function salvar() {
+    setSalvando(true)
+    try {
+      const r = await api<{ config: { latitude: string; longitude: string } }>('/admin/configuracoes', {
+        method: 'PUT',
+        json: { coordenadas: textoDoPonto(ponto) },
+      })
+      aoSalvar(r.config)
+      setColado('')
+      avisar('Local salvo. O mapa do site já mostra o ponto novo.')
+    } catch (e) {
+      avisar((e as Error).message, 'erro')
+    } finally {
+      setSalvando(false)
+    }
+  }
+
+  return (
+    <div className="cartao cartao--largo">
+      <h3 className="cartao__titulo">Local no mapa</h3>
+      <label className="campo" htmlFor="link-mapa">
+        <span className="campo__rotulo">Link do Google Maps ou coordenadas</span>
+        <input
+          id="link-mapa"
+          value={colado}
+          placeholder="https://maps.app.goo.gl/…"
+          onChange={(e) => setColado(e.target.value)}
+          onPaste={(e) => {
+            const texto = e.clipboardData.getData('text')
+            // colou: já procura, sem precisar de botão
+            setTimeout(() => achar(texto))
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              achar(colado)
+            }
+          }}
+        />
+        <span className="campo__dica">
+          No Google Maps, abra o lugar, toque em <strong>Compartilhar</strong>, copie o link e cole aqui. Depois, se
+          precisar, arraste o alfinete no mapa abaixo para acertar.
+        </span>
+      </label>
+      <div className="envio__acoes envio__acoes--inicio">
+        <button type="button" className="btn btn--secundario" disabled={!colado.trim() || buscando} onClick={() => achar(colado)}>
+          {buscando ? 'Procurando…' : 'Achar no mapa'}
+        </button>
+      </div>
+      {erro && (
+        <p className="erro" role="alert">
+          {erro}
+        </p>
       )}
-    </section>
+
+      <Suspense fallback={<div className="mapa-ponto mapa-ponto--carregando" />}>
+        <MapaPonto ponto={ponto} aoMudar={setPonto} />
+      </Suspense>
+
+      <p className="campo__dica previa-ponto" aria-live="polite">
+        {mudou ? 'Ponto novo, ainda não salvo: ' : 'No site agora: '}
+        {grausMinutos(ponto.latitude, 'lat')} · {grausMinutos(ponto.longitude, 'lng')}.{' '}
+        <a
+          href={`https://www.google.com/maps/search/?api=1&query=${ponto.latitude},${ponto.longitude}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Conferir no Google Maps ↗
+        </a>
+      </p>
+
+      <div className="envio__acoes">
+        {mudou && (
+          <button
+            type="button"
+            className="btn btn--fantasma"
+            onClick={() => {
+              setPonto(salvo)
+              setErro('')
+            }}
+          >
+            Desfazer
+          </button>
+        )}
+        <button type="button" className="btn btn--primario" disabled={!mudou || salvando} onClick={salvar}>
+          {salvando ? 'Salvando…' : 'Salvar local'}
+        </button>
+      </div>
+    </div>
   )
 }
 
