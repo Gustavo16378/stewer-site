@@ -39,8 +39,9 @@ liga um ao outro.
 | RF05 | WhatsApp (botões e telefone), mensagem pronta, Instagram e o local do mapa (marcador, coordenadas, rota e Google Maps) são os configurados no painel. |
 | RF06 | Os vídeos do portfólio e das aulas continuam no código e aparecem intercalados com as fotos do banco. |
 | RF07 | O mapa nunca mostra aviso de chave: usa o fundo escuro da CARTO quando há chave; sem ela, ou se falhar, o OpenFreeMap escuro; sem ele (ou sem WebGL), o OpenStreetMap escurecido. O mapa só é baixado quando a pessoa chega perto dele. |
-| RF08 | Na primeira visita da sessão, uma abertura de marca desenha o logo e o nome e sobe revelando o site, sem nunca prender o site. Ao rolar, títulos, fotos e números entram com movimento. Quem pede menos movimento no sistema vê tudo parado, sem abertura. |
+| RF08 | A cada carregamento, uma abertura de marca rápida desenha o logo e o nome e sobe revelando o site, sem nunca prender o site. Ao rolar, títulos, fotos e números entram com movimento. Quem pede menos movimento no sistema vê tudo parado, sem abertura. |
 | RF09 | Um link com âncora (por exemplo `#onde-atende`) abre direto na seção. |
+| RF21 | No celular, um dedo sobre o mapa rola a página; o mapa se move com dois dedos, e quem tenta arrastar com um dedo vê o aviso. |
 
 ### Painel
 

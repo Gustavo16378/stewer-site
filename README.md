@@ -68,7 +68,7 @@ O painel tem a mesma identidade do site (carvão, creme e dourado, Playfair Disp
 
 ## Testes
 
-948 testes automáticos, mais carga e Lighthouse, rodando a cada push no GitHub Actions:
+952 testes automáticos, mais carga e Lighthouse, rodando a cada push no GitHub Actions:
 
 | suíte | técnica | testes |
 |---|---|---|
@@ -77,11 +77,11 @@ O painel tem a mesma identidade do site (carvão, creme e dourado, Playfair Disp
 | API real com wrangler e D1 isolado | caixa preta e cinza | 210 |
 | Segurança (OWASP Top 10) | caixa preta e cinza | 318 |
 | Orçamento de peso do build | caixa branca | 16 |
-| E2E no computador e no celular: fluxos, acessibilidade (axe), segurança no navegador, Core Web Vitals, abertura e movimento | caixa preta | 118 |
+| E2E no computador e no celular: fluxos, acessibilidade (axe), segurança no navegador, Core Web Vitals, abertura e movimento | caixa preta | 122 |
 | Carga e estresse (autocannon, até 100 conexões) | caixa preta | 7 cenários |
 | Lighthouse CI (celular e computador) | caixa preta | 2 telas |
 
-Cada teste aponta o requisito que cobre. O [plano de testes](docs/testes.md) tem a matriz de rastreabilidade e os 21 problemas que os testes encontraram, todos corrigidos.
+Cada teste aponta o requisito que cobre. O [plano de testes](docs/testes.md) tem a matriz de rastreabilidade e os problemas encontrados, todos corrigidos.
 
 ## Como rodar
 

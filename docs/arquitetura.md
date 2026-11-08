@@ -124,7 +124,7 @@ sequenceDiagram
   plugin no `vite.config.ts`).
 - **Abertura de marca** (`src/preloader.ts` e `.css`): o S do logo (vetor em
   `src/lib/logo.ts`) traçado com `stroke-dashoffset`, em CSS puro. Cobre a
-  espera pelo conteúdo em vez de somar a ela. Uma vez por sessão; nunca para
+  espera pelo conteúdo em vez de somar a ela. A cada carregamento; nunca para
   quem pede menos movimento; nunca prende o site (sobe em até 6 s).
 - **O resto da página** monta numa transição do React, em fatias: montar
   tudo de uma vez travava o processador do celular por ~200 ms.
