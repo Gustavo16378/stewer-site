@@ -17,7 +17,7 @@ import { abrirPreloader } from './preloader'
  *
  * Antes, a foto só começava a vir depois de o React baixar e montar a tela.
  *
- * Na primeira visita da sessão, a abertura de marca (preloader.ts) cobre
+ * A cada carregamento, a abertura de marca (preloader.ts) cobre
  * essa espera com o S sendo desenhado, e sobe quando o site montou.
  */
 const fecharPreloader = abrirPreloader()

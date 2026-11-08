@@ -7,7 +7,7 @@
  * (main.tsx). O traço é stroke-dashoffset em CSS (preloader.css); aqui só se
  * monta o HTML e se decide quando sair.
  *
- * - uma vez por sessão (sessionStorage), como no Monte Vinhedo;
+ * - aparece a cada carregamento (inclusive ao recarregar);
  * - quem pede menos movimento (prefers-reduced-motion) não vê;
  * - nunca segura o site: sai assim que a animação mínima terminou e a
  *   página montou, e em 6 s sai de qualquer jeito.
@@ -15,33 +15,16 @@
 import { LOGO_PATHS, LOGO_VIEWBOX } from './lib/logo'
 import './preloader.css'
 
-export const CHAVE_PRELOADER = 'sg:preloader'
 const NOME = 'Stewer Gabriel'
 const FRASE = 'Visagista · Consultor de imagem'
 
 /** o desenho completo, antes de a cortina poder subir */
-const TEMPO_MINIMO = 2300
+const TEMPO_MINIMO = 1500
 /** se o site não montar, a cortina sobe mesmo assim */
 const TEMPO_MAXIMO = 6000
-/** a cortina sobe em 0,9 s; o site começa a entrar 0,35 s antes do fim */
-const CORTINA = 900
-const SOBREPOSICAO = 350
-
-function jaViu() {
-  try {
-    return sessionStorage.getItem(CHAVE_PRELOADER) === '1'
-  } catch {
-    return false
-  }
-}
-
-function marcarVisto() {
-  try {
-    sessionStorage.setItem(CHAVE_PRELOADER, '1')
-  } catch {
-    /* modo privado: só não lembra na próxima página */
-  }
-}
+/** a cortina sobe em 0,75 s; o site começa a entrar 0,3 s antes do fim */
+const CORTINA = 750
+const SOBREPOSICAO = 300
 
 const esperar = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
 
@@ -61,7 +44,7 @@ function letras(texto: string) {
  * quando o site estiver pronto (ou null, se não mostrou nada).
  */
 export function abrirPreloader(): ((sitePronto: Promise<unknown>) => void) | null {
-  if (jaViu() || matchMedia('(prefers-reduced-motion: reduce)').matches) return null
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return null
 
   const raiz = document.documentElement
   raiz.classList.add('sg-abrindo')
@@ -81,7 +64,7 @@ export function abrirPreloader(): ((sitePronto: Promise<unknown>) => void) | nul
   // o nome sobe quando o S já está quase todo traçado, e só com a fonte
   // certa, para não trocar de letra no meio (se a fonte demorar, vai assim mesmo)
   const fonte = document.fonts?.load('400 1em "Playfair Display"').catch(() => undefined) ?? Promise.resolve()
-  void Promise.all([esperar(1050), Promise.race([fonte, esperar(1700)])]).then(() =>
+  void Promise.all([esperar(650), Promise.race([fonte, esperar(1100)])]).then(() =>
     el.classList.add('pl-nome-pronto'),
   )
 
@@ -99,7 +82,6 @@ export function abrirPreloader(): ((sitePronto: Promise<unknown>) => void) | nul
       raiz.classList.remove('sg-abrindo')
       await esperar(SOBREPOSICAO)
       el.remove()
-      marcarVisto()
     })
   }
 }
