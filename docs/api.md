@@ -13,8 +13,13 @@ testes.
   login, senha e contatos).
 - Todo erro sai como `{ "erro": "mensagem em português" }`, pronta para
   mostrar na tela. Erro inesperado sai como 500 sem detalhe interno.
-- Nenhuma resposta da API tem cache (`Cache-Control: no-store`), exceto as
-  fotos.
+- Nenhuma resposta da API fica em cache (`Cache-Control: no-store`), exceto
+  as fotos e `/conteudo` (`no-cache`: o navegador sempre confere com o
+  servidor, mas pode reaproveitar o `<link rel="preload">` do `index.html`).
+- Toda resposta leva os cabeçalhos de segurança (`nosniff`, `X-Frame-Options:
+  DENY`, CSP `default-src 'none'`), inclusive erro e foto.
+- Rota que não existe responde **404** (ou **405** para método diferente de
+  GET) em JSON, nunca a página do site.
 - Datas vêm do D1 em UTC, no formato `2026-11-07 22:30:00`.
 
 | status | quando |
@@ -22,11 +27,12 @@ testes.
 | 400 | dado inválido (a mensagem diz qual) |
 | 401 | sem sessão, sessão vencida ou senha errada |
 | 403 | outra origem (CSRF), ou senha temporária ainda não trocada |
-| 404 | rota, lista ou item que não existe |
+| 404 | rota, lista ou item que não existe (id de rota só com dígitos) |
 | 405 | método que a rota não aceita |
 | 409 | conflito: alguém salvou antes, foto em uso, lista mudou ao reordenar |
 | 413 / 415 | corpo grande demais / tipo errado |
 | 429 | login travado depois de 5 erros |
+| 502 | o Google não respondeu ao abrir o link curto do mapa |
 
 ## Público
 
@@ -66,9 +72,13 @@ descrição (`degrade-com-risca-12.webp`).
 e o cookie `sg_sessao`. Senha errada e e-mail que não existe dão a mesma
 resposta (401). Depois de 5 erros no mesmo e-mail, 429 por 15 minutos.
 
+O cookie leva um JWT (HS256, 8 horas) que aponta para uma linha da tabela
+`sessoes`. Sem a linha, o token não vale, por melhor que seja a assinatura.
+
 ### `POST /auth/logout`
 
-Apaga o cookie.
+Apaga o cookie e encerra a sessão no servidor: um token copiado antes deixa
+de valer. As sessões da mesma pessoa em outros aparelhos continuam.
 
 ### `GET /auth/eu`
 
@@ -144,9 +154,16 @@ campo de várias linhas, linhas vazias somem.
 | `whatsapp` | `(63) 98511-6783`, com ou sem 55 | `5563985116783` |
 | `instagram` | `@stewer.gabriel` ou o link do perfil | `stewer.gabriel` |
 | `mensagem` | 3 a 200 caracteres | espaços e quebras juntados |
-| `coordenadas` | `-10.18256, -48.32910` como o Google Maps copia | `latitude` e `longitude`, só se o ponto for no Brasil |
+| `coordenadas` | `-10.18256, -48.32910` como o Google Maps copia, ou o link longo de um lugar | `latitude` e `longitude`, só se o ponto for no Brasil |
 
 Tudo junto ou nada.
+
+`POST /admin/link-mapa` `{ url }` → `{ latitude, longitude }`: abre um link
+do Google Maps e devolve o ponto. Link longo é lido direto, sem rede. Link
+curto (`maps.app.goo.gl`, do botão Compartilhar) é seguido pelo servidor:
+só para hosts do Google, só HTTPS, sem usuário nem porta, até 6
+redirecionamentos e 5 s. Qualquer outro endereço dá 400 sem nenhum acesso
+(proteção contra SSRF).
 
 ### Usuários
 
@@ -154,13 +171,13 @@ Tudo junto ou nada.
 |---|---|---|
 | GET | `/admin/usuarios` | quem tem acesso, com o último login |
 | POST | `/admin/usuarios` | `{ nome, email }` → item e `senhaTemporaria` (aparece uma vez) |
-| PUT | `/admin/usuarios/:id` | gera senha temporária nova (esqueceu a senha) |
+| PUT | `/admin/usuarios/:id` | gera senha temporária nova (esqueceu a senha) e encerra as sessões abertas da pessoa |
 | DELETE | `/admin/usuarios/:id` | tira o acesso; não vale para si mesmo nem para o último |
 
 ### Outros
 
 | método | rota | o que faz |
 |---|---|---|
-| PUT | `/admin/senha` | `{ atual, nova }`; quem está com senha temporária não precisa da atual. Mínimo 10 caracteres |
-| GET | `/admin/auditoria?de=…&ate=…[&usuario=id]` | registros do período, do mais novo ao mais velho |
+| PUT | `/admin/senha` | `{ atual, nova }`; quem está com senha temporária não precisa da atual. Mínimo 10 caracteres. Encerra as outras sessões da pessoa |
+| GET | `/admin/auditoria?de=…&ate=…[&usuario=id]` | registros do período, do mais novo ao mais velho (`usuario` que não é número dá 400) |
 | GET | `/admin/espaco` | `{ usado, limite, porcentagem, bytesFotos, fotosEnviadas }` |

@@ -133,13 +133,24 @@ As fotos que vieram com o site original não podem ser apagadas pelo painel
 - **Mensagem que já vem escrita:** o cliente toca no botão e o WhatsApp abre
   com essa mensagem pronta.
 - **Instagram:** só o nome de usuário (@stewer.gabriel) ou o link do perfil.
-- **Coordenadas do mapa:** se você mudar de lugar, abra o Google Maps,
-  segure o dedo em cima do lugar novo (no computador, botão direito) e toque
-  nos números que aparecem para copiar. Cole aqui. O painel mostra como vai
-  ficar e um link para conferir no mapa antes de salvar.
 
-O nome do lugar, o endereço e o horário ficam em **Textos do site**, na
-parte **Onde atende**.
+Toque em **Salvar contatos** para gravar os três.
+
+**Endereço:** o nome do lugar, o endereço, o horário e o atendimento que
+aparecem no cartão do mapa. Uma linha por linha, como aparece no site.
+
+**Local no mapa:** se você mudar de lugar,
+
+1. abra o lugar novo no Google Maps;
+2. toque em **Compartilhar** e em **Copiar link**;
+3. cole no campo **Link do Google Maps ou coordenadas**. O alfinete dourado
+   já pula para o lugar;
+4. se precisar acertar, arraste o alfinete (ou toque no mapa onde ele deve
+   ficar). **Conferir no Google Maps** abre o ponto para você comparar;
+5. toque em **Salvar local**. Se mudou de ideia antes de salvar, **Desfazer**.
+
+Também dá para colar as coordenadas (segure o dedo em cima do lugar no
+Google Maps e toque nos números que aparecem).
 
 ## Usuários
 
@@ -161,6 +172,11 @@ que horas. Dá para filtrar por pessoa. Fica guardado por um ano.
 Aqui você troca a sua senha (precisa da atual) e vê quanto espaço o site já
 usa no banco. O plano gratuito cabe mais de mil fotos; o painel avisa no
 topo se passar de 70%.
+
+Trocar a senha desconecta o painel de todos os outros aparelhos (o celular
+esquecido logado, por exemplo); o aparelho em que você trocou continua
+entrando. Tocar em **Sair** encerra o acesso daquele aparelho de verdade:
+para entrar de novo, só com a senha.
 
 ## Quem cuida do quê
 
