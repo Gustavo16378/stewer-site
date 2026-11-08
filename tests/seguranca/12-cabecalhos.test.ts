@@ -7,6 +7,7 @@
  */
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
+import { parse } from 'parse5'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { Cliente, URL_BASE, formFoto, imagem, logado } from '../api/cliente'
 
@@ -22,6 +23,21 @@ const diretivas = (csp: string) =>
       .filter((d) => d[0])
       .map(([nome, ...valores]) => [nome, valores]),
   ) as Record<string, string[]>
+
+type No = { nodeName: string; tagName?: string; attrs?: { name: string; value: string }[]; value?: string; childNodes?: No[]; content?: No }
+
+/** todos os elementos do documento, com atributos (nomes em minúsculas) e o texto de dentro */
+function elementosDe(html: string) {
+  const lista: { tag: string; atributos: Record<string, string>; texto: string }[] = []
+  const texto = (n: No): string => (n.nodeName === '#text' ? (n.value ?? '') : (n.childNodes ?? []).map(texto).join(''))
+  const andar = (n: No) => {
+    if (n.tagName) lista.push({ tag: n.tagName, atributos: Object.fromEntries((n.attrs ?? []).map((a) => [a.name, a.value])), texto: texto(n) })
+    for (const f of n.childNodes ?? []) andar(f)
+    if (n.content) andar(n.content)
+  }
+  andar(parse(html) as unknown as No)
+  return lista
+}
 
 let painel: Cliente
 beforeAll(async () => {
@@ -96,20 +112,26 @@ describe('páginas (public/_headers)', () => {
     })
   })
 
-  it('o build não tem <script> inline, que a CSP bloquearia', () => {
+  it('o build não tem script inline, que a CSP bloquearia', () => {
     for (const pagina of ['index.html', 'admin.html']) {
-      const html = readFileSync(path.resolve(__dirname, '../../dist', pagina), 'utf8')
-      // sem diferenciar maiúsculas (<SCRIPT>) e aceitando </script > com espaço
-      const scripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)]
-      expect(html.match(/<script\b/gi)?.length, `${pagina}: toda <script> aberta foi analisada`).toBe(scripts.length)
+      // lido com um parser de HTML de verdade (o mesmo algoritmo dos
+      // navegadores), não com expressão regular: <SCRIPT>, </script >,
+      // atributos em qualquer caixa, nada escapa
+      const elementos = elementosDe(readFileSync(path.resolve(__dirname, '../../dist', pagina), 'utf8'))
+      const scripts = elementos.filter((e) => e.tag === 'script')
       expect(scripts.length, pagina).toBeGreaterThan(0)
-      for (const [, atributos, corpo] of scripts) {
+      for (const s of scripts) {
         // JSON-LD não executa: a CSP não se aplica a ele
-        if (/type="application\/ld\+json"/.test(atributos)) continue
-        expect(atributos, pagina).toMatch(/\bsrc="\//)
-        expect(corpo.trim(), pagina).toBe('')
+        if (s.atributos.type === 'application/ld+json') continue
+        expect(s.atributos.src, pagina).toMatch(/^\//)
+        expect(s.texto.trim(), pagina).toBe('')
       }
-      expect(html, pagina).not.toMatch(/\son[a-z]+="/i)
+      for (const e of elementos) {
+        for (const [nome, valor] of Object.entries(e.atributos)) {
+          expect(nome, `${pagina}: <${e.tag} ${nome}>`).not.toMatch(/^on/)
+          expect(valor, `${pagina}: <${e.tag} ${nome}>`).not.toMatch(/^\s*javascript:/i)
+        }
+      }
     }
   })
 
