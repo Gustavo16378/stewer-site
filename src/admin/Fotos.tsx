@@ -254,7 +254,7 @@ export function PaginaFotos() {
     <section className="pagina">
       <header className="pagina__topo">
         <div>
-          <h2 className="pagina__titulo">Fotos</h2>
+          <h2 className="pagina__titulo">Todas as fotos</h2>
           <p className="pagina__descricao">
             Todas as fotos que o site pode usar. Toda foto enviada é reduzida e convertida para WebP, o formato mais leve
             para a web. Use “Baixar todas” de vez em quando, como cópia de segurança.
