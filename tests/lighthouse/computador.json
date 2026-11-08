@@ -7,7 +7,8 @@
       "numberOfRuns": 3,
       "settings": {
         "preset": "desktop",
-        "chromeFlags": "--no-sandbox"
+        "chromeFlags": "--no-sandbox",
+        "pauseAfterLoadMs": 3000
       }
     },
     "assert": {

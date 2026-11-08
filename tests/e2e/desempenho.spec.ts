@@ -36,7 +36,10 @@ async function celularLento(page: Page, projeto = 'celular'): Promise<CDPSession
   return cdp
 }
 
-/** liga os observadores antes de qualquer script da página */
+/**
+ * Liga os observadores antes de qualquer script da página. Mede como um
+ * visitante novo: com a abertura de marca (o pior caso).
+ */
 async function observar(page: Page) {
   await page.addInitScript(() => {
     const m = { fcp: 0, lcp: 0, cls: 0, candidatos: [] as string[], longas: [] as { inicio: number; duracao: number }[] }
@@ -87,6 +90,9 @@ async function rolarTudo(page: Page) {
 }
 
 test.describe('RNF18 · Core Web Vitals do site', () => {
+  // como um visitante novo de verdade: com animação e com a abertura de
+  // marca (o pior caso; o resto dos E2E roda com movimento reduzido)
+  test.use({ abertura: true, reducedMotion: 'no-preference' })
   test.skip(({ browserName }) => browserName !== 'chromium', 'throttling só no Chromium')
   test.describe.configure({ mode: 'serial' })
 
