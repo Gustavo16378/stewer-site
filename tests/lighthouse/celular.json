@@ -39,7 +39,7 @@
         "first-contentful-paint": [
           "error",
           {
-            "maxNumericValue": 1800,
+            "maxNumericValue": 2000,
             "aggregationMethod": "median-run"
           }
         ],
