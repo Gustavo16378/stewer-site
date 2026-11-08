@@ -29,11 +29,21 @@ export async function mapaFalso(page: Page) {
   )
 }
 
-/** o `test` de todas as suítes E2E, já com o mapa falso */
+/**
+ * O `test` de todas as suítes E2E, já com o mapa falso e com o fiscal da
+ * CSP (RNF03): qualquer coisa que a Content-Security-Policy de
+ * public/_headers bloquear durante o teste (um script, uma fonte, um pedaço
+ * de mapa) reprova o teste, para a política nunca quebrar o site em silêncio.
+ */
 export const test = base.extend({
   page: async ({ page }, usar) => {
+    const bloqueios: string[] = []
+    page.on('console', (m) => {
+      if (/Content[- ]Security[- ]Policy/i.test(m.text())) bloqueios.push(m.text())
+    })
     await mapaFalso(page)
     await usar(page)
+    expect(bloqueios, 'a CSP bloqueou algo durante o teste').toEqual([])
   },
 })
 

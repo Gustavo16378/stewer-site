@@ -6,8 +6,15 @@ import AxeBuilder from '@axe-core/playwright'
 import type { Page } from '@playwright/test'
 import { abrirSite, entrar, expect, test } from './ajuda'
 
+/**
+ * `preload: false`: sem isso o axe baixa as folhas de estilo de outros sites
+ * (Google Fonts) por fetch, o que a CSP do site barra, com razão. Só a regra
+ * css-orientation-lock usa esse download; o resto da auditoria é igual.
+ */
+const axe = (page: Page) => new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).options({ preload: false })
+
 const auditar = async (page: Page, excluir: string[] = []) => {
-  let b = new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa'])
+  let b = axe(page)
   for (const e of excluir) b = b.exclude(e)
   const r = await b.analyze()
   const graves = r.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical')
@@ -47,7 +54,7 @@ test('RNF12 · painel: formulário aberto sem violações graves', async ({ page
  */
 test('RNF12 · site: o conteúdo vindo do painel não cria violação grave', async ({ page }) => {
   await abrirSite(page)
-  const r = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).disableRules(['color-contrast']).analyze()
+  const r = await axe(page).disableRules(['color-contrast']).analyze()
   const graves = r.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical')
   expect(graves.map((v) => `${v.id}: ${v.nodes[0]?.target.join(' ')}`)).toEqual([])
 })
