@@ -1,8 +1,7 @@
 /**
  * E2E · o site como o visitante vê (RF01–RF06, RNF14, RNF16).
  */
-import { expect, test } from '@playwright/test'
-import { abrirSite, api, semRolagemLateral } from './ajuda'
+import { abrirSite, api, expect, semRolagemLateral, test } from './ajuda'
 
 test.describe('site público', () => {
   test('RF01 · abre sem erro e mostra o conteúdo do banco', async ({ page }) => {
@@ -72,6 +71,24 @@ test.describe('site público', () => {
     await expect(secao).toContainText(`10°10'57"S · 48°19'45"W`)
     await expect(secao.locator('.boss-label')).toHaveText('Boss House Barbearia')
     await expect(secao.getByRole('link', { name: /Traçar rota/ })).toHaveAttribute('href', /destination=-10\.18256053,-48\.32910908$/)
+  })
+
+  test('RF07 · sem chave da CARTO, o mapa usa o OpenFreeMap (nunca o aviso de chave)', async ({ page }) => {
+    const carto: string[] = []
+    page.on('request', (r) => r.url().includes('cartocdn') && carto.push(r.url()))
+    await abrirSite(page, '#onde-atende')
+    await expect(page.locator('#onde-atende .leaflet-container')).toHaveAttribute('data-fonte-mapa', 'openfreemap')
+    await expect(page.locator('#onde-atende .leaflet-control-attribution')).toContainText('OpenFreeMap')
+    expect(carto).toEqual([])
+  })
+
+  test('RF07 · OpenFreeMap fora do ar: cai no OpenStreetMap escurecido', async ({ page }) => {
+    await page.route('**/tiles.openfreemap.org/styles/**', (r) => r.abort())
+    await abrirSite(page, '#onde-atende')
+    const mapa = page.locator('#onde-atende .leaflet-container')
+    await expect(mapa).toHaveAttribute('data-fonte-mapa', 'osm')
+    await expect(mapa.locator('.mapa-osm')).toHaveCount(1)
+    await expect(page.locator('#onde-atende .boss-label')).toHaveText('Boss House Barbearia')
   })
 
   test('RF02 · serviços todos ocultos: a seção sai da página e volta depois', async ({ page, request }) => {

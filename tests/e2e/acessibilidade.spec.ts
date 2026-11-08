@@ -3,8 +3,8 @@
  * Falha em violação "serious" ou "critical" das regras WCAG 2 A e AA.
  */
 import AxeBuilder from '@axe-core/playwright'
-import { expect, test, type Page } from '@playwright/test'
-import { abrirSite, entrar } from './ajuda'
+import type { Page } from '@playwright/test'
+import { abrirSite, entrar, expect, test } from './ajuda'
 
 const auditar = async (page: Page, excluir: string[] = []) => {
   let b = new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa'])

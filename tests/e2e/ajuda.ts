@@ -1,8 +1,41 @@
-import { expect, type APIRequestContext, type Page } from '@playwright/test'
+import { test as base, expect, type APIRequestContext, type Page } from '@playwright/test'
 // @ts-expect-error módulo .mjs sem tipos
 import { ADMIN } from '../servidor-teste.mjs'
 
-export { ADMIN }
+export { ADMIN, expect }
+
+/** estilo mínimo do OpenFreeMap: carrega na hora e não sai para a internet */
+export const ESTILO_FALSO = {
+  version: 8,
+  sources: {},
+  layers: [{ id: 'fundo', type: 'background', paint: { 'background-color': '#1b1b1b' } }],
+}
+
+/** PNG 1×1 cinza, no lugar de cada pedaço de mapa */
+const PIXEL = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+  'base64',
+)
+
+/**
+ * Os serviços de mapa nunca são chamados de verdade nos testes: ficam mais
+ * rápidos, não dependem da internet e não gastam a cota de ninguém.
+ * Cada teste pode trocar uma rota (as registradas depois valem primeiro).
+ */
+export async function mapaFalso(page: Page) {
+  await page.route('**/tiles.openfreemap.org/styles/**', (r) => r.fulfill({ json: ESTILO_FALSO }))
+  await page.route(/basemaps\.cartocdn\.com|tile\.openstreetmap\.org|tiles\.openfreemap\.org\/(?!styles)/, (r) =>
+    r.fulfill({ body: PIXEL, contentType: 'image/png' }),
+  )
+}
+
+/** o `test` de todas as suítes E2E, já com o mapa falso */
+export const test = base.extend({
+  page: async ({ page }, usar) => {
+    await mapaFalso(page)
+    await usar(page)
+  },
+})
 
 /** entra no painel pela tela de login */
 export async function entrar(page: Page, email = ADMIN.email, senha = ADMIN.senha) {
