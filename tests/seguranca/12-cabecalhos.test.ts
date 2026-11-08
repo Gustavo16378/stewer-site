@@ -62,8 +62,8 @@ describe('páginas (public/_headers)', () => {
       csp = diretivas((await cabecalhos('/')).get('content-security-policy') ?? '')
     })
 
-    it('script só do próprio site: nada de inline, eval ou CDN', () => {
-      expect(csp['script-src']).toEqual(["'self'"])
+    it('script só do próprio site e do Web Analytics da Cloudflare: nada de inline, eval ou CDN', () => {
+      expect(csp['script-src']).toEqual(["'self'", 'https://static.cloudflareinsights.com'])
     })
 
     it('sem plugin (object), sem <base> trocado, sem formulário para fora', () => {
@@ -100,6 +100,9 @@ describe('páginas (public/_headers)', () => {
         'https://*.basemaps.cartocdn.com',
         'https://tile.openstreetmap.org',
         'https://tiles.openfreemap.org',
+        // Web Analytics da Cloudflare (injetado pelo Pages em produção)
+        'https://static.cloudflareinsights.com',
+        'https://cloudflareinsights.com',
         "'none'",
       ])
       for (const valores of Object.values(csp)) for (const v of valores) expect(permitidas).toContain(v)
