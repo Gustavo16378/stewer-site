@@ -63,12 +63,28 @@ test.describe('abertura de marca', () => {
   })
 
   test('o texto da abertura entra junto com a cortina subindo, sem buraco preto entre os dois', async ({ page }) => {
+    // anotado dentro da página, no instante exato em que o site começa a
+    // entrar: olhar de fora chegaria tarde numa máquina lenta (a janela é 0,3 s)
+    await page.addInitScript(() => {
+      const w = window as unknown as { __entrada?: { cortinaNaTela: boolean } }
+      let abriu = false
+      // o <html> ainda não existe quando este script roda: observa o documento
+      new MutationObserver((_, obs) => {
+        const raiz = document.documentElement
+        if (!raiz) return
+        if (raiz.classList.contains('sg-abrindo')) abriu = true
+        else if (abriu) {
+          w.__entrada = { cortinaNaTela: !!document.querySelector('[data-preloader].pl-saindo') }
+          obs.disconnect()
+        }
+      }).observe(document, { subtree: true, attributes: true, attributeFilter: ['class'] })
+    })
     await page.goto('/')
-    const cortina = page.locator('[data-preloader]')
-    await expect(cortina).toHaveClass(/pl-saindo/, { timeout: 7000 })
-    // a cortina ainda está na tela e o site já começou a entrar
-    await expect.poll(() => page.evaluate(() => document.documentElement.classList.contains('sg-abrindo'))).toBe(false)
-    expect(await cortina.count()).toBe(1)
+    const entrada = await page.waitForFunction(() => (window as unknown as { __entrada?: object }).__entrada, null, {
+      timeout: 7000,
+    })
+    // a cortina ainda está subindo quando o site começa a entrar
+    expect(await entrada.jsonValue()).toEqual({ cortinaNaTela: true })
   })
 })
 
