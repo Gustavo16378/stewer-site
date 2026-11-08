@@ -703,3 +703,35 @@ a { color: inherit; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
+
+/* ------------------------------------------------------------ endereço e mapa */
+.cartao[hidden] { display: none; }
+.bloco-titulo { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+
+.mapa-ponto {
+  height: 320px;
+  border: 1px solid var(--fio);
+  background: var(--carvao);
+  isolation: isolate;
+}
+@media (min-width: 720px) { .mapa-ponto { height: 400px; } }
+.mapa-ponto--carregando { background: repeating-linear-gradient(135deg, var(--cinza) 0 8px, var(--fio-suave) 8px 9px); }
+.mapa-ponto .leaflet-container, .mapa-ponto.leaflet-container { background: var(--carvao); font-family: var(--font-body); }
+.mapa-ponto .leaflet-control-zoom a {
+  background: rgba(12, 12, 12, .9);
+  color: var(--marfim);
+  border-color: var(--fio) !important;
+}
+.mapa-ponto .leaflet-control-attribution {
+  background: transparent !important;
+  color: var(--areia) !important;
+  font-size: 9px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.alfinete { cursor: grab; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .6)); }
+.alfinete:active { cursor: grabbing; }
+.alfinete:focus-visible { outline: 1px solid var(--ouro); outline-offset: 4px; }
+
+/* reserva final do mapa (lib/mapa.ts), igual à do site */
+.mapa-osm { filter: invert(1) hue-rotate(180deg) grayscale(1) brightness(.72) contrast(1.15); }
