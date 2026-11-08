@@ -24,7 +24,8 @@ const PIXEL = Buffer.from(
  */
 export async function mapaFalso(page: Page) {
   await page.route('**/tiles.openfreemap.org/styles/**', (r) => r.fulfill({ json: ESTILO_FALSO }))
-  await page.route(/basemaps\.cartocdn\.com|tile\.openstreetmap\.org|tiles\.openfreemap\.org\/(?!styles)/, (r) =>
+  // ancorado no começo do endereço: só os servidores de mapa de verdade
+  await page.route(/^https:\/\/(?:(?:[a-z0-9-]+\.)?basemaps\.cartocdn\.com|tile\.openstreetmap\.org|tiles\.openfreemap\.org(?!\/styles))\//, (r) =>
     r.fulfill({ body: PIXEL, contentType: 'image/png' }),
   )
 }

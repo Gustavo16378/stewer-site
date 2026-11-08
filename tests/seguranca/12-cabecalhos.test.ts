@@ -99,7 +99,9 @@ describe('páginas (public/_headers)', () => {
   it('o build não tem <script> inline, que a CSP bloquearia', () => {
     for (const pagina of ['index.html', 'admin.html']) {
       const html = readFileSync(path.resolve(__dirname, '../../dist', pagina), 'utf8')
-      const scripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)]
+      // sem diferenciar maiúsculas (<SCRIPT>) e aceitando </script > com espaço
+      const scripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)]
+      expect(html.match(/<script\b/gi)?.length, `${pagina}: toda <script> aberta foi analisada`).toBe(scripts.length)
       expect(scripts.length, pagina).toBeGreaterThan(0)
       for (const [, atributos, corpo] of scripts) {
         // JSON-LD não executa: a CSP não se aplica a ele
