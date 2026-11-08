@@ -14,3 +14,21 @@
 /admin*
   X-Robots-Tag: noindex, nofollow
   Cache-Control: no-store
+
+# Desempenho (RNF18): o que o build gera tem o hash no nome e nunca muda;
+# as fotos e o vídeo do código mudam raramente (uma semana, e o navegador
+# confere depois disso)
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/photos/*
+  Cache-Control: public, max-age=604800
+
+/portfolioImgs/*
+  Cache-Control: public, max-age=604800
+
+/instrutorImgs/*
+  Cache-Control: public, max-age=604800
+
+/videosImgs/*
+  Cache-Control: public, max-age=604800
