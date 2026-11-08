@@ -190,7 +190,7 @@ export default function Hero() {
         <div className="hidden md:flex pb-10 items-end justify-between">
           <div className="flex flex-col items-center gap-2">
             <div className="w-px h-14 bg-gradient-to-b from-transparent to-wire" />
-            <span className="text-wire text-[10px] tracking-ultra uppercase">Scroll</span>
+            <span aria-hidden="true" className="text-sand text-[10px] tracking-ultra uppercase">Scroll</span>
           </div>
 
           <div className={`flex gap-2 items-center ${SLIDES.length < 2 ? 'invisible' : ''}`}>

@@ -65,6 +65,7 @@ export default function Location() {
       <div
         ref={mapEl}
         className="relative z-0 h-[58vh] min-h-[440px] sm:h-[82vh] sm:min-h-[600px] w-full"
+        role="region"
         aria-label={`Mapa — ${nome}`}
       />
 
