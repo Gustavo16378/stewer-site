@@ -39,6 +39,8 @@ export type CampoTexto = {
   dica?: string
   /** em `linhas`, quantas linhas no máximo */
   linhas?: number
+  /** editado em outra página do painel, e não em "Textos do site" */
+  pagina?: 'contatos'
   ler: () => string | Foto
   gravar: (v: string | Foto) => void
 }
@@ -109,6 +111,7 @@ const S = {
   ensino: 'Ensino',
   portfolio: 'Portfólio',
   onde: 'Onde atende',
+  endereco: 'Endereço',
   contato: 'Contato',
   rodape: 'Rodapé',
 }
@@ -172,12 +175,14 @@ export const CAMPOS_TEXTO: CampoTexto[] = [
 
   // ----------------------------------------------------------- onde atende
   campo('onde.rotulo', S.onde, 'Rótulo sobre o mapa', 'texto', 40, ONDE, 'rotulo'),
-  linhas('local.nome', S.onde, 'Nome do lugar', 40, 2, LOCAL, 'nome'),
-  linhas('local.endereco', S.onde, 'Endereço', 100, 2, LOCAL, 'endereco'),
-  linhas('local.horario', S.onde, 'Horário', 40, 2, LOCAL, 'horario', 'Duas linhas, por exemplo: Seg — Sáb / 9h às 19h.'),
-  linhas('local.atendimento', S.onde, 'Atendimento', 40, 2, LOCAL, 'atendimento'),
   campo('onde.rota', S.onde, 'Botão da rota', 'texto', 30, ONDE, 'rota'),
   campo('onde.mapa', S.onde, 'Botão do Google Maps', 'texto', 30, ONDE, 'mapa'),
+
+  // ------------------------------------------- endereço (aba Contatos e mapa)
+  { ...linhas('local.nome', S.endereco, 'Nome do lugar', 40, 2, LOCAL, 'nome'), pagina: 'contatos' },
+  { ...linhas('local.endereco', S.endereco, 'Endereço', 100, 2, LOCAL, 'endereco'), pagina: 'contatos' },
+  { ...linhas('local.horario', S.endereco, 'Horário', 40, 2, LOCAL, 'horario', 'Duas linhas, por exemplo: Seg — Sáb / 9h às 19h.'), pagina: 'contatos' },
+  { ...linhas('local.atendimento', S.endereco, 'Atendimento', 40, 2, LOCAL, 'atendimento'), pagina: 'contatos' },
 
   // --------------------------------------------------------------- contato
   campo('contato.rotulo', S.contato, 'Rótulo', 'texto', 30, CONTATO_SECAO, 'rotulo'),
