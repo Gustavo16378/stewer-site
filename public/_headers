@@ -1,6 +1,8 @@
 # Cabeçalhos de segurança do site e do painel (Cloudflare Pages).
 # As respostas da API recebem os mesmos em functions/_lib/http.ts.
 # Testados em tests/seguranca e nos E2E (nenhuma violação de CSP).
+# cloudflareinsights.com: o Web Analytics da Cloudflare, que o Pages injeta
+# só em produção (contagem de visitas sem cookie).
 
 /*
   X-Content-Type-Options: nosniff
@@ -9,7 +11,7 @@
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()
   Cross-Origin-Opener-Policy: same-origin
   Strict-Transport-Security: max-age=31536000; includeSubDomains
-  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https://basemaps.cartocdn.com https://*.basemaps.cartocdn.com https://tile.openstreetmap.org https://tiles.openfreemap.org; connect-src 'self' https://basemaps.cartocdn.com https://tiles.openfreemap.org; worker-src 'self' blob:; child-src 'self' blob:; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https://basemaps.cartocdn.com https://*.basemaps.cartocdn.com https://tile.openstreetmap.org https://tiles.openfreemap.org; connect-src 'self' https://basemaps.cartocdn.com https://tiles.openfreemap.org https://cloudflareinsights.com; worker-src 'self' blob:; child-src 'self' blob:; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
 
 /admin*
   X-Robots-Tag: noindex, nofollow
