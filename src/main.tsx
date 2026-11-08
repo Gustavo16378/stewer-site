@@ -2,6 +2,7 @@ import './fontes'
 import './index.css'
 import { SLIDES } from './content/site'
 import { carregarConteudo } from './lib/conteudo-remoto'
+import { abrirPreloader } from './preloader'
 
 /*
  * A entrada do site é pequena de propósito e não depende do React (RNF18).
@@ -15,14 +16,19 @@ import { carregarConteudo } from './lib/conteudo-remoto'
  * 3. enquanto isso o React e o resto do site vão chegando (inicio.tsx).
  *
  * Antes, a foto só começava a vir depois de o React baixar e montar a tela.
+ *
+ * Na primeira visita da sessão, a abertura de marca (preloader.ts) cobre
+ * essa espera com o S sendo desenhado, e sobe quando o site montou.
  */
+const fecharPreloader = abrirPreloader()
 const conteudo = carregarConteudo().finally(baixarPrimeiraFoto)
 const site = import('./inicio')
 
-void Promise.all([conteudo, site]).then(([, { montar }]) => {
+const montado = Promise.all([conteudo, site]).then(([, { montar }]) => {
   montar()
   irParaAncora()
 })
+fecharPreloader?.(montado)
 
 function baixarPrimeiraFoto() {
   const foto = SLIDES[0]
