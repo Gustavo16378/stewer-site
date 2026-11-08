@@ -1,6 +1,4 @@
 import { useEffect, useRef } from 'react'
-import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
 import {
   LOCAL,
   ONDE,
@@ -10,12 +8,10 @@ import {
   linkTelefone,
   telefoneFormatado,
 } from '../content/site'
-import { fundoEscuro } from '../lib/mapa'
 import Linhas from './Linhas'
 
-/** escapa o nome do lugar antes de ir para o HTML do marcador do Leaflet */
-const html = (s: string) =>
-  s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!)
+/** o mapa começa a baixar quando a seção está a esta distância da tela */
+const ANTECEDENCIA = '600px'
 
 export default function Location() {
   const mapEl = useRef<HTMLDivElement>(null)
@@ -26,55 +22,28 @@ export default function Location() {
   const COORDS = `${grausMinutos(LAT, 'lat')} · ${grausMinutos(LNG, 'lng')}`
 
   useEffect(() => {
-    if (!mapEl.current) return
+    const el = mapEl.current
+    if (!el) return
 
-    const map = L.map(mapEl.current, {
-      center: [LAT, LNG],
-      zoom: 15,
-      zoomControl: false,
-      scrollWheelZoom: false,
-      attributionControl: false,
-    })
-
-    // fundo escuro com reserva: CARTO → OpenFreeMap → OSM (ver lib/mapa.ts)
-    const desligarFundo = fundoEscuro(map)
-
-    // Prominent gold teardrop pin (tip = exact location), pulsing halo + label
-    const icon = L.divIcon({
-      className: 'boss-marker',
-      html:
-        '<span class="boss-ping"></span>' +
-        '<svg class="boss-pin" viewBox="0 0 24 34" xmlns="http://www.w3.org/2000/svg">' +
-        '<path d="M12 0C5.37 0 0 5.37 0 12c0 8.5 12 22 12 22s12-13.5 12-22C24 5.37 18.63 0 12 0z" fill="#c4a882"/>' +
-        '<circle cx="12" cy="12" r="4.5" fill="#0c0c0c"/></svg>' +
-        `<span class="boss-label">${html(nome)}</span>`,
-      iconSize: [28, 40],
-      iconAnchor: [14, 40],
-    })
-    L.marker([LAT, LNG], { icon }).addTo(map)
-
-    L.control.zoom({ position: 'topright' }).addTo(map)
-
-    // Entrance animation — fly in the first time the section is seen
-    // (respects prefers-reduced-motion)
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    let played = false
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !played) {
-          played = true
-          if (reduce) map.setView([LAT, LNG], 16.5)
-          else map.flyTo([LAT, LNG], 16.5, { duration: 1.8, easeLinearity: 0.2 })
-        }
+    // o Leaflet só vem quando a pessoa chega perto do mapa (ver lib/mapa-site.ts)
+    let desmontar: (() => void) | undefined
+    let vivo = true
+    const perto = new IntersectionObserver(
+      ([e]) => {
+        if (!e.isIntersecting) return
+        perto.disconnect()
+        void import('../lib/mapa-site').then(({ montarMapa }) => {
+          if (vivo) desmontar = montarMapa(el, { latitude: LAT, longitude: LNG, nome })
+        })
       },
-      { threshold: 0.2 }
+      { rootMargin: ANTECEDENCIA },
     )
-    io.observe(mapEl.current)
+    perto.observe(el)
 
     return () => {
-      io.disconnect()
-      desligarFundo()
-      map.remove()
+      vivo = false
+      perto.disconnect()
+      desmontar?.()
     }
   }, [LAT, LNG, nome])
 
