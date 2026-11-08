@@ -5,41 +5,77 @@ import { HERO, SLIDES, type Foto } from '../content/site'
 // As fotos e os textos da abertura vêm do painel (aba "Fotos da abertura" e
 // "Textos do site"); o que está em content/site.ts é a reserva.
 
-function Slide({ foto, active }: { foto: Foto; active: boolean }) {
+/**
+ * Desempenho (RNF18): a primeira foto é a maior coisa da tela no celular
+ * (o LCP). Ela vai com prioridade alta e sozinha; as outras só começam a
+ * baixar depois que ela apareceu, para não dividirem a banda com ela.
+ */
+function Slide({
+  foto,
+  active,
+  primeira,
+  carregar,
+  aoCarregar,
+}: {
+  foto: Foto
+  active: boolean
+  primeira: boolean
+  carregar: boolean
+  aoCarregar?: () => void
+}) {
   return (
     <div
       className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
         active ? 'opacity-100' : 'opacity-0'
       }`}
     >
-      <img
-        src={foto.src}
-        alt=""
-        className="w-full h-full object-cover object-top"
-        style={{ objectPosition: foto.posicao ?? '50% 0%' }}
-        draggable={false}
-      />
+      {carregar && (
+        <img
+          src={foto.src}
+          alt=""
+          width={foto.largura}
+          height={foto.altura}
+          className="w-full h-full object-cover object-top"
+          style={{ objectPosition: foto.posicao ?? '50% 0%' }}
+          draggable={false}
+          decoding={primeira ? 'sync' : 'async'}
+          // o React 18 ainda não conhece fetchPriority: vai como atributo cru
+          {...{ fetchpriority: primeira ? 'high' : 'low' }}
+          onLoad={aoCarregar}
+        />
+      )}
     </div>
   )
 }
 
 export default function Hero() {
   const [active, setActive] = useState(0)
+  // as outras fotos esperam a primeira aparecer (ver Slide)
+  const [primeiraPronta, setPrimeiraPronta] = useState(false)
 
   useEffect(() => {
-    if (SLIDES.length < 2) return
+    if (SLIDES.length < 2 || !primeiraPronta) return
     const id = setInterval(() => setActive(i => (i + 1) % SLIDES.length), 4500)
     return () => clearInterval(id)
-  }, [])
+  }, [primeiraPronta])
+
+  const slide = (foto: Foto, i: number) => (
+    <Slide
+      key={foto.src}
+      foto={foto}
+      active={i === active}
+      primeira={i === 0}
+      carregar={i === 0 || primeiraPronta}
+      aoCarregar={i === 0 ? () => setPrimeiraPronta(true) : undefined}
+    />
+  )
 
   return (
     <section className="relative bg-carbon overflow-hidden md:min-h-screen">
 
       {/* ━━━ MOBILE: foto no topo (em fluxo) ━━━ */}
       <div className="md:hidden relative w-full" style={{ aspectRatio: '3/4' }}>
-        {SLIDES.map((foto, i) => (
-          <Slide key={foto.src} foto={foto} active={i === active} />
-        ))}
+        {SLIDES.map(slide)}
 
         {/* Dissolve na base */}
         <div
@@ -68,9 +104,7 @@ export default function Hero() {
 
       {/* ━━━ DESKTOP: foto absoluta no lado direito, sem borda ━━━ */}
       <div className="hidden md:block absolute right-0 top-0 bottom-0 w-[54%]">
-        {SLIDES.map((foto, i) => (
-          <Slide key={foto.src} foto={foto} active={i === active} />
-        ))}
+        {SLIDES.map(slide)}
 
         {/* Dissolve esquerda — principal */}
         <div
