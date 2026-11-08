@@ -71,7 +71,7 @@ export default function Hero() {
   )
 
   return (
-    <section className="relative bg-carbon overflow-hidden md:min-h-screen">
+    <section data-parallax-area className="relative bg-carbon overflow-hidden md:min-h-screen">
 
       {/* ━━━ MOBILE: foto no topo (em fluxo) ━━━ */}
       <div className="md:hidden relative w-full" style={{ aspectRatio: '3/4' }}>
@@ -103,7 +103,7 @@ export default function Hero() {
       </div>
 
       {/* ━━━ DESKTOP: foto absoluta no lado direito, sem borda ━━━ */}
-      <div className="hidden md:block absolute right-0 top-0 bottom-0 w-[54%]">
+      <div data-parallax="foto" className="hidden md:block absolute right-0 top-0 bottom-0 w-[54%]">
         {SLIDES.map(slide)}
 
         {/* Dissolve esquerda — principal */}
@@ -148,7 +148,7 @@ export default function Hero() {
         <div className="hidden md:block h-28 shrink-0" />
 
         {/* Texto */}
-        <div className="flex-1 flex items-center py-10 md:py-0">
+        <div data-parallax="texto" className="flex-1 flex items-center py-10 md:py-0">
           <div className="max-w-xl">
             <p className="text-sand text-[10px] tracking-ultra uppercase mb-6 fade-up">
               {HERO.local}

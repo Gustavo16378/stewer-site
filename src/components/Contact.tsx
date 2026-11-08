@@ -8,7 +8,7 @@ export default function Contact() {
 
         <p className="text-sand text-[10px] tracking-ultra uppercase fade-up">{CONTATO_SECAO.rotulo}</p>
 
-        <h2 className="mt-4 font-serif text-[clamp(3rem,8vw,6rem)] text-cream leading-tight fade-up fade-up-d1">
+        <h2 data-revelar="linhas" className="mt-4 font-serif text-[clamp(3rem,8vw,6rem)] text-cream leading-tight">
           <Linhas linhas={CONTATO_SECAO.titulo} />
         </h2>
 

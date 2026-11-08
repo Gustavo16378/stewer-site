@@ -178,8 +178,8 @@ export function MediaGallery({
                 setSelected(item)
               }
             }}
-            className={`overflow-hidden group cursor-pointer relative fade-up focus-visible:outline focus-visible:outline-1 focus-visible:outline-gold ${tileClass}`}
-            style={{ transitionDelay: `${(i % 3) * 0.08}s` }}
+            data-revelar="foto"
+            className={`overflow-hidden group cursor-pointer relative focus-visible:outline focus-visible:outline-1 focus-visible:outline-gold ${tileClass}`}
           >
             {item.type === 'image' ? (
               <img

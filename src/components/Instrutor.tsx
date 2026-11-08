@@ -13,7 +13,7 @@ export default function Instrutor() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-28 lg:items-end mb-14 sm:mb-20">
           <div>
             <p className="text-sand text-[10px] tracking-ultra uppercase fade-up">{ENSINO.rotulo}</p>
-            <h2 className="mt-4 font-serif text-[clamp(2.25rem,7vw,3.75rem)] text-cream leading-[1.1] fade-up fade-up-d1">
+            <h2 data-revelar="linhas" className="mt-4 font-serif text-[clamp(2.25rem,7vw,3.75rem)] text-cream leading-[1.1]">
               <Linhas linhas={ENSINO.titulo} quebraClasse="hidden sm:block" />
             </h2>
             <div className="mt-6 w-10 h-px bg-gold fade-up fade-up-d2" />

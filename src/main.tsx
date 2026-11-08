@@ -24,9 +24,13 @@ const fecharPreloader = abrirPreloader()
 const conteudo = carregarConteudo().finally(baixarPrimeiraFoto)
 const site = import('./inicio')
 
-const montado = Promise.all([conteudo, site]).then(([, { montar }]) => {
-  montar()
+// a ordem importa: montar, esperar a página existir, ir até a âncora do
+// link e só então armar o movimento (que olha o que já está na tela)
+const montado = Promise.all([conteudo, site]).then(async ([, inicio]) => {
+  inicio.montar()
+  await paginaMontada()
   irParaAncora()
+  inicio.ligarMovimentoQuandoRolar()
 })
 fecharPreloader?.(montado)
 
@@ -39,15 +43,30 @@ function baixarPrimeiraFoto() {
 }
 
 /**
+ * Espera a página existir: o React monta no ciclo seguinte ao render(), e o
+ * fim da página (abaixo da abertura) vem logo depois, em fatias (App.tsx).
+ * Com âncora no link, espera a seção dela; sem âncora, o rodapé.
+ */
+function paginaMontada() {
+  const alvo = decodeURIComponent(location.hash.slice(1))
+  return new Promise<void>((pronto) => {
+    let quadros = 0
+    const olhar = () => {
+      const achou = alvo ? document.getElementById(alvo) : document.querySelector('#root footer')
+      if (achou || ++quadros > 180) pronto()
+      else requestAnimationFrame(olhar)
+    }
+    olhar()
+  })
+}
+
+/**
  * Link com âncora (stewergabriel.com/#onde-atende): quando o navegador
  * procurou a seção, ela ainda não existia, porque a página monta depois da
- * API. Depois do primeiro render, vai até ela.
+ * API. Depois que ela montou, vai até ela.
  */
-function irParaAncora(tentativas = 30) {
+function irParaAncora() {
   const id = decodeURIComponent(location.hash.slice(1))
-  if (!id) return
-  // o React monta no próximo ciclo, não na hora do render(): espera a seção
-  const alvo = document.getElementById(id)
-  if (alvo) alvo.scrollIntoView()
-  else if (tentativas > 0) requestAnimationFrame(() => irParaAncora(tentativas - 1))
+  // direto, sem a rolagem suave do CSS: quem chega pelo link já quer estar lá
+  if (id) document.getElementById(id)?.scrollIntoView({ behavior: 'instant' })
 }
