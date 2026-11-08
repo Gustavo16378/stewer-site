@@ -15,4 +15,19 @@ carregarConteudo().finally(() => {
       <App />
     </StrictMode>,
   )
+  irParaAncora()
 })
+
+/**
+ * Link com âncora (stewergabriel.com/#onde-atende): quando o navegador
+ * procurou a seção, ela ainda não existia, porque a página monta depois da
+ * API. Depois do primeiro render, vai até ela.
+ */
+function irParaAncora(tentativas = 30) {
+  const id = decodeURIComponent(location.hash.slice(1))
+  if (!id) return
+  // o React monta no próximo ciclo, não na hora do render(): espera a seção
+  const alvo = document.getElementById(id)
+  if (alvo) alvo.scrollIntoView()
+  else if (tentativas > 0) requestAnimationFrame(() => irParaAncora(tentativas - 1))
+}
