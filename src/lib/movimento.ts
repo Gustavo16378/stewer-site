@@ -73,10 +73,10 @@ export async function ligarMovimento() {
       onSplit: (s) =>
         gsap.from(s.lines, {
           yPercent: 110,
-          duration: 1.1,
+          duration: 0.7,
           ease: 'expo.out',
-          stagger: 0.09,
-          scrollTrigger: { trigger: titulo, start: 'top 88%', once: true },
+          stagger: 0.06,
+          scrollTrigger: { trigger: titulo, start: 'top 94%', once: true },
         }),
     })
   }
@@ -88,23 +88,23 @@ export async function ligarMovimento() {
   gsap.set(fotos, { clipPath: 'inset(100% 0% 0% 0%)' })
   gsap.set(fotos.map(miolo).filter(Boolean), { scale: 1.18, transformOrigin: '50% 60%' })
   ScrollTrigger.batch(fotos, {
-    start: 'top 90%',
+    start: 'top 96%',
     once: true,
     onEnter: (lote) => {
       const els = lote as HTMLElement[]
       gsap.to(els, {
         clipPath: 'inset(0% 0% 0% 0%)',
-        duration: 1.25,
-        ease: 'expo.inOut',
-        stagger: 0.12,
+        duration: 0.75,
+        ease: 'expo.out',
+        stagger: 0.07,
         // devolve o elemento como era: o zoom de hover das fotos volta a valer
         clearProps: 'clipPath',
       })
       gsap.to(els.map(miolo).filter(Boolean), {
         scale: 1,
-        duration: 1.7,
+        duration: 1,
         ease: 'expo.out',
-        stagger: 0.12,
+        stagger: 0.07,
         clearProps: 'transform,transformOrigin',
       })
     },
@@ -124,13 +124,13 @@ export async function ligarMovimento() {
     escrever()
     gsap.to(estado, {
       v: n.inteiro,
-      duration: 1.8,
+      duration: 1.1,
       ease: 'power2.out',
       onUpdate: escrever,
       onComplete: () => {
         el.textContent = final
       },
-      scrollTrigger: { trigger: el, start: 'top 92%', once: true },
+      scrollTrigger: { trigger: el, start: 'top 96%', once: true },
     })
   }
 
