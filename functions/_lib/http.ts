@@ -6,10 +6,18 @@
 
 const SEM_CACHE = { 'Cache-Control': 'no-store' }
 
+/** os mesmos de public/_headers, que não vale para as Functions */
+export const SEGURANCA = {
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
+}
+
 export function json(dados: unknown, status = 200, cabecalhos: HeadersInit = {}) {
   return new Response(JSON.stringify(dados), {
     status,
-    headers: { 'Content-Type': 'application/json; charset=utf-8', ...SEM_CACHE, ...cabecalhos },
+    headers: { 'Content-Type': 'application/json; charset=utf-8', ...SEGURANCA, ...SEM_CACHE, ...cabecalhos },
   })
 }
 

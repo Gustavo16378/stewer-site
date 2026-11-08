@@ -1,4 +1,4 @@
-import { erro, idDaRota, tratar } from '../../_lib/http'
+import { erro, idDaRota, tratar, SEGURANCA } from '../../_lib/http'
 import type { Funcao } from '../../_lib/tipos'
 
 /**
@@ -32,12 +32,12 @@ export const onRequestGet: Funcao<'id'> = ({ params, env, request }) =>
         ...(baixar ? { 'Content-Disposition': `attachment; filename="${nome}"` } : {}),
         'Content-Type': m.tipo,
         'Cache-Control': 'public, max-age=31536000, immutable',
-        'X-Content-Type-Options': 'nosniff',
+        ...SEGURANCA,
       },
     })
   })
 
-/** "Crianças no Volta às Aulas" vira "criancas-no-volta-as-aulas" */
+/** "Degradê com risca à navalha" vira "degrade-com-risca-a-navalha" */
 export function nomeDeArquivo(texto: string) {
   return texto
     .normalize('NFD')
