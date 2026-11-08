@@ -27,7 +27,7 @@ flowchart LR
 | parte | onde fica | quem mexe |
 |---|---|---|
 | Código | GitHub (`Gustavo16378/stewer-site`) | o mantenedor |
-| Site, painel e API | Cloudflare Pages, projeto do site | deploy automático a cada push na `main` |
+| Site, painel e API | Cloudflare Pages, projeto `stewer-gabriel` | deploy automático a cada push na `main` |
 | Banco | Cloudflare D1 `stewer-site` | o painel (conteúdo) e as migrations (estrutura) |
 | Segredo das sessões | variável `JWT_SECRET` do Pages, tipo Secret | o mantenedor, uma vez |
 

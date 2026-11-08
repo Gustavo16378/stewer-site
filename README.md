@@ -92,7 +92,7 @@ npm run docs:pdf   # gera os PDFs da documentação
 Uma vez só, na pasta do projeto:
 
 1. `npx wrangler login`
-2. `npx wrangler d1 create stewer-site` e copie o `database_id` para o [`wrangler.toml`](wrangler.toml). Confira também se o `name` do `wrangler.toml` é o nome do projeto no Cloudflare Pages.
+2. `npx wrangler d1 create stewer-site` e copie o `database_id` para o [`wrangler.toml`](wrangler.toml). O `name` do `wrangler.toml` já é o do projeto no Cloudflare Pages (`stewer-gabriel`).
 3. `npm run db:remoto` para criar as tabelas com o conteúdo atual do site.
 4. Gere o segredo das sessões com `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"` e cadastre no painel da Cloudflare em Workers & Pages → projeto → Settings → Variables and Secrets, com o nome `JWT_SECRET`, tipo Secret.
 5. `npm run admin -- --remote "Stewer Gabriel" email-do-stewer@exemplo.com` (a senha é pedida no terminal).
