@@ -112,6 +112,7 @@ test.describe('RNF18 · Core Web Vitals do site', () => {
       FCP: `${Math.round(m.fcp)} ms`,
       LCP: `${Math.round(m.lcp)} ms`,
       TBT: `${Math.round(tbt(m))} ms`,
+      'tarefas longas': m.longas.map((t) => `${Math.round(t.inicio)}+${Math.round(t.duracao)} ms`),
       'candidatos a LCP': m.candidatos,
       'baixado na abertura': `${Math.round(peso / KB)} KB`,
     }
