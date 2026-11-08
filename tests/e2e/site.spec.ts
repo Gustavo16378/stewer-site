@@ -10,7 +10,7 @@ test.describe('site público', () => {
     page.on('console', (m) => m.type() === 'error' && !m.text().includes('basemaps') && erros.push(m.text()))
 
     await abrirSite(page)
-    await expect(page.locator('h1')).toHaveText('StewerGabriel')
+    await expect(page.locator('h1')).toHaveText('Stewer Gabriel')
     await expect(page.locator('#servicos h3')).toHaveText(['Corte', 'Visagismo', 'Consultoria de Imagem'])
     await expect(page.locator('#consultoria h3')).toHaveCount(4)
     await expect(page.locator('#instrutor [role=button]')).toHaveCount(3)
