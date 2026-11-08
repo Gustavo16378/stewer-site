@@ -10,6 +10,5 @@ compatibility_date = "2026-10-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "stewer-site"
-# trocar pelo id que `npx wrangler d1 create stewer-site` devolver
-database_id = "00000000-0000-0000-0000-000000000000"
+database_id = "8a7f89d0-7cdb-4cb0-8ed1-5c5bee51d71e"
 migrations_dir = "migrations"
