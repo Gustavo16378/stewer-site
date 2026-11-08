@@ -1,7 +1,7 @@
 name: testes
 
 # Roda a pirâmide inteira a cada push e pull request na main:
-# tipos → unitários → banco → API (wrangler + D1 isolado) → E2E e acessibilidade.
+# dependências → tipos → unitários → banco → API → segurança → E2E e acessibilidade.
 on:
   push:
     branches: [main]
@@ -27,6 +27,9 @@ jobs:
       - name: Dependências
         run: npm ci
 
+      - name: Auditoria de dependências (A06, nada vulnerável no que vai para produção)
+        run: npm run auditoria
+
       - name: Build (inclui checagem de tipos do site, do painel e da API)
         run: npm run build
 
@@ -36,7 +39,7 @@ jobs:
       - name: Banco (schema, constraints, migrations)
         run: npm run test:db
 
-      - name: API (contrato, integração, segurança, concorrência)
+      - name: API (contrato, integração, concorrência) e segurança (OWASP Top 10)
         run: npm run test:api
 
       - name: Navegador do Playwright

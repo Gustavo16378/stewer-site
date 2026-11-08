@@ -17,9 +17,11 @@
     "test:unit": "vitest run --project unit",
     "test:db": "vitest run --project db",
     "test:api": "vitest run --project api",
+    "test:seguranca": "vitest run --project api tests/seguranca && playwright test tests/e2e/seguranca.spec.ts",
     "test:e2e": "playwright test",
     "test:tudo": "npm run build && vitest run && playwright test",
     "test:cobertura": "vitest run --project unit --coverage",
+    "auditoria": "npm audit --omit=dev && npm audit --audit-level=high",
     "docs:pdf": "node scripts/gerar-pdfs.mjs"
   },
   "dependencies": {
