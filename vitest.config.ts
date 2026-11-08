@@ -22,7 +22,7 @@ export default defineConfig({
       {
         test: {
           name: 'api',
-          include: ['tests/api/**/*.test.ts'],
+          include: ['tests/api/**/*.test.ts', 'tests/seguranca/**/*.test.ts'],
           environment: 'node',
           globalSetup: ['tests/api/setup.ts'],
           // um banco só para a rodada: os arquivos rodam em sequência
