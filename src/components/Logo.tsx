@@ -1,5 +1,5 @@
 /**
- * O "S" do Stewer em vetor, redesenhado do logo original (logo1.jpeg) com
+ * O "S" do Stewer em vetor, redesenhado do logo original com
  * os vértices alinhados: três polígonos, sem curva nenhuma.
  *
  * Vetor e não PNG: fica nítido em qualquer tela, pesa menos de 1 KB e o
