@@ -62,8 +62,10 @@ export async function tratar(fn: () => Promise<Response>): Promise<Response> {
   }
 }
 
+/** só dígitos: "0x1", "1e3", " 1" e "-1" não viram número de registro */
 export function idDaRota(valor: string | string[] | undefined): number {
-  const id = Number(Array.isArray(valor) ? valor[0] : valor)
-  if (!Number.isInteger(id) || id <= 0) throw new ErroHttp('Registro não encontrado.', 404)
+  const texto = String(Array.isArray(valor) ? valor[0] : (valor ?? ''))
+  const id = /^\d{1,15}$/.test(texto) ? Number(texto) : NaN
+  if (!Number.isSafeInteger(id) || id <= 0) throw new ErroHttp('Registro não encontrado.', 404)
   return id
 }
