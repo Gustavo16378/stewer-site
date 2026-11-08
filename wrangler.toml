@@ -1,0 +1,15 @@
+# Configuração do Cloudflare Pages: o site (dist) e a API (functions/)
+# sobem juntos no mesmo deploy.
+#
+# `name` precisa ser o nome do projeto no Pages (o que aparece no painel da
+# Cloudflare em Workers & Pages).
+name = "stewer-site"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-10-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "stewer-site"
+# trocar pelo id que `npx wrangler d1 create stewer-site` devolver
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "migrations"
