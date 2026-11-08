@@ -29,7 +29,6 @@
   "dependencies": {
     "@fontsource/inter": "^5.3.0",
     "@fontsource/playfair-display": "^5.3.0",
-    "@gsap/react": "^2.1.2",
     "@maplibre/maplibre-gl-leaflet": "^0.1.4",
     "gsap": "^3.15.1",
     "leaflet": "^1.9.4",

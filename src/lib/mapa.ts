@@ -28,7 +28,6 @@ import {
   type Fonte,
 } from './mapa-fontes'
 
-export { CHAVE_CARTO, type Fonte }
 
 type Opcoes = {
   chave?: string
