@@ -15,15 +15,57 @@ const html = (s: string) =>
 
 type Local = { latitude: number; longitude: number; nome: string }
 
+/**
+ * Celular e tablet: um dedo rola a página, dois dedos mexem no mapa (como
+ * no Google Maps). Antes, quem descia a página com o dedo em cima do mapa
+ * ficava preso arrastando o mapa.
+ */
+const toque = () => window.matchMedia('(pointer: coarse)').matches
+
+/** o aviso de "dois dedos", que aparece quando alguém tenta arrastar com um */
+function avisoDoisDedos(el: HTMLElement) {
+  const aviso = document.createElement('div')
+  aviso.className = 'mapa-aviso'
+  aviso.setAttribute('aria-hidden', 'true')
+  aviso.textContent = 'Use dois dedos para mover o mapa'
+  el.append(aviso)
+  let relogio = 0
+  let inicioY = 0
+  const comecou = (e: TouchEvent) => {
+    inicioY = e.touches[0]?.clientY ?? 0
+  }
+  const moveu = (e: TouchEvent) => {
+    // só quando a pessoa arrasta mesmo com um dedo (um toque parado não avisa)
+    if (e.touches.length !== 1 || Math.abs((e.touches[0]?.clientY ?? 0) - inicioY) < 8) return
+    aviso.classList.add('mapa-aviso--visivel')
+    window.clearTimeout(relogio)
+    relogio = window.setTimeout(() => aviso.classList.remove('mapa-aviso--visivel'), 1400)
+  }
+  el.addEventListener('touchstart', comecou, { passive: true })
+  el.addEventListener('touchmove', moveu, { passive: true })
+  return () => {
+    window.clearTimeout(relogio)
+    el.removeEventListener('touchstart', comecou)
+    el.removeEventListener('touchmove', moveu)
+    aviso.remove()
+  }
+}
+
 /** monta o mapa no elemento e devolve a função que desmonta */
 export function montarMapa(el: HTMLElement, { latitude, longitude, nome }: Local) {
+  const celular = toque()
   const map = L.map(el, {
     center: [latitude, longitude],
     zoom: 15,
     zoomControl: false,
     scrollWheelZoom: false,
     attributionControl: false,
+    // no toque, arrastar com um dedo é rolar a página; o movimento de pinça
+    // (dois dedos) aproxima e também move o mapa
+    dragging: !celular,
+    touchZoom: true,
   })
+  const desligarAviso = celular ? avisoDoisDedos(el) : () => undefined
 
   // fundo escuro com reserva: CARTO → OpenFreeMap → OSM (ver lib/mapa.ts)
   const desligarFundo = fundoEscuro(map)
@@ -61,6 +103,7 @@ export function montarMapa(el: HTMLElement, { latitude, longitude, nome }: Local
 
   return () => {
     io.disconnect()
+    desligarAviso()
     desligarFundo()
     map.remove()
   }

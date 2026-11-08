@@ -12,12 +12,12 @@ Como o sistema é verificado, o que cada suíte cobre e como cada requisito de
 | API | caixa preta e caixa cinza | a API real (wrangler, runtime da Cloudflare) com um D1 isolado | 210 |
 | Segurança | caixa preta e caixa cinza | OWASP Top 10 contra a API real: SQL injection, sessão, cabeçalhos, SSRF, upload | 318 |
 | Desempenho | caixa branca | orçamento de peso do build (`dist/`) | 16 |
-| E2E | caixa preta | site e painel num navegador, no computador (1440px) e no celular (390px) | 118 |
-| **Total automatizado** | | | **948** |
+| E2E | caixa preta | site e painel num navegador, no computador (1440px) e no celular (390px) | 122 |
+| **Total automatizado** | | | **952** |
 | Carga e estresse | caixa preta | autocannon contra a API real, até 100 conexões | 7 cenários |
 | Lighthouse | caixa preta | celular e computador, três rodadas cada, na CI | 2 telas |
 
-Os E2E rodam duas vezes cada, uma no computador e uma no celular: são 59
+Os E2E rodam duas vezes cada, uma no computador e uma no celular: são 61
 cenários (dois deles valem só para uma das telas e pulam a outra). Entre os
 E2E estão os de acessibilidade (axe-core, WCAG 2 A e AA), os de segurança no
 navegador, os Core Web Vitals, a abertura de marca e o movimento de rolagem.
@@ -215,12 +215,12 @@ boas práticas, SEO). Os tetos estão em
 
 | arquivo | cenários | o que confere |
 |---|---|---|
-| `site.spec.ts` | 11 | site abre sem erro com o banco; portfólio intercala vídeo; foto ampliada pelo teclado; API fora e lenta; links de contato; mapa (e as reservas dele); seção some sem itens; HTML no nome do lugar não vira elemento |
+| `site.spec.ts` | 12 | site abre sem erro com o banco; portfólio intercala vídeo; foto ampliada pelo teclado; API fora e lenta; links de contato; mapa (e as reservas dele); no celular, um dedo rola a página e dois mexem no mapa; seção some sem itens; HTML no nome do lugar não vira elemento |
 | `painel.spec.ts` | 17 | login; editar serviço e ver no site; reordenar com as setas; texto e voltar ao original; enviar foto (reduzida para 1600px); nova foto no portfólio; contatos; colar link do Google Maps e arrastar o alfinete; endereço; erro em português; duas pessoas no mesmo item; acesso com senha temporária; auditoria; espaço; todas as abas sem rolagem lateral; sair |
 | `acessibilidade.spec.ts` | 4 | login, todas as abas e o formulário aberto sem violação grave; o que o painel coloca no site sem violação nova |
 | `seguranca.spec.ts` | 6 | ver "Segurança" acima |
 | `desempenho.spec.ts` | 7 | ver "Desempenho" acima |
-| `abertura.spec.ts` | 6 | a abertura de marca aparece para visitante novo, trava a rolagem por trás, sobe sozinha, espera a API lenta, não prende o site quebrado, não repete na sessão, não aparece para quem pede menos movimento |
+| `abertura.spec.ts` | 7 | a abertura de marca aparece, trava a rolagem por trás, sobe sozinha em até 2 s, aparece de novo ao recarregar, espera a API lenta, não prende o site quebrado, não aparece para quem pede menos movimento |
 | `movimento.spec.ts` | 8 | o GSAP só baixa quando a pessoa rola; título dividido em linhas sobe e mantém o nome acessível; foto se abre e devolve o hover; número conta até o valor e o leitor de tela lê o final; o que já estava na tela não some; parallax só no computador; movimento reduzido não baixa nada |
 
 Os E2E rodam com `prefers-reduced-motion: reduce`, para olhar o resultado e
@@ -239,6 +239,7 @@ não a coreografia; `abertura`, `movimento` e `desempenho` ligam o movimento.
 | RF07 | `mapa` · `site.spec` (OpenFreeMap sem chave, OSM com o estilo fora) · `desempenho.spec` (mapa sob demanda) |
 | RF08 | `abertura.spec` · `movimento.spec` · `movimento` · `desempenho.spec` (CLS com movimento) |
 | RF09 | `site.spec` (mapa pela âncora) · `movimento.spec` (âncora antes do movimento) |
+| RF21 | `site.spec` (um dedo rola, aviso de dois dedos) |
 | RF10 | `02-autenticacao` · `painel.spec` |
 | RF11 | `entidades` · `03-listas` · `painel.spec` |
 | RF12 | `utilitarios` (zip) · `04-fotos` · `painel.spec` |
@@ -297,6 +298,7 @@ O que os testes encontraram durante o desenvolvimento e já foi corrigido:
 | Foto do portfólio com 871 KB | `orcamento` | JPEG de 96 KB (migração 0004) |
 | O GSAP travava o processador do celular por ~250 ms logo depois de carregar | `desempenho.spec` (TBT) | só baixa quando a pessoa rola, e se prepara em pedaços |
 | Montar a página inteira de uma vez travava ~200 ms, congelando o S da abertura | `desempenho.spec` (TBT) | o resto da página monta numa transição do React |
+| No celular, descer a página com o dedo sobre o mapa arrastava o mapa | uso no celular (relatado), agora coberto em `site.spec` | um dedo rola a página, dois mexem no mapa, com aviso |
 
 ## Fidelidade ao design (RNF16)
 

@@ -2,6 +2,21 @@
 
 Mudanças do site, no formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [2.2.0] · 2026-11-08
+
+### Mudado
+
+- A abertura de marca aparece a cada carregamento (antes, uma vez por
+  sessão) e ficou mais rápida: a cortina sobe em 1,5 s, contra 2,3 s.
+- Movimento de rolagem mais rápido e começando mais cedo: títulos, fotos e
+  números entram em menos de um segundo.
+
+### Corrigido
+
+- No celular, descer a página com o dedo em cima do mapa arrastava o mapa
+  em vez de rolar. Agora um dedo rola a página e dois dedos mexem no mapa,
+  com o aviso "Use dois dedos para mover o mapa".
+
 ## [2.1.0] · 2026-11-08
 
 ### Adicionado

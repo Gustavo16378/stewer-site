@@ -1,5 +1,5 @@
 /**
- * O "S" do Stewer em vetor, redesenhado do logo original (logo1.jpeg) com
+ * O "S" do Stewer em vetor, redesenhado do logo original com
  * os vértices alinhados: três polígonos, sem curva nenhuma.
  *
  * Só os dados, sem React: o preloader (src/preloader.ts) roda antes de o

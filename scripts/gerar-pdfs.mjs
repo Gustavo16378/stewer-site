@@ -19,7 +19,7 @@ import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { marked } from 'marked'
 import { PDFDocument } from 'pdf-lib'
-import { chromium } from 'playwright'
+import { chromium } from '@playwright/test'
 
 const raiz = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const pacote = JSON.parse(readFileSync(path.join(raiz, 'package.json'), 'utf8'))
