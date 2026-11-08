@@ -9,6 +9,11 @@ updates:
       interval: weekly
       day: monday
     open-pull-requests-limit: 5
+    # versão grande (React 19, TypeScript 7, Tailwind 4…) muda API e pede
+    # migração planejada, não um merge automático: fica fora do Dependabot
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
     groups:
       desenvolvimento:
         dependency-type: development
