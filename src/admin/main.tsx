@@ -2,6 +2,7 @@
  * Painel do site (/admin). Entrada separada do site no build: quem visita
  * o site não baixa nada daqui, e o painel não carrega o mapa.
  */
+import { AGENDA_URL } from '../content/site'
 import { StrictMode, useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { api, quandoSessaoExpirar, type Usuario } from './api'
@@ -157,6 +158,10 @@ function Casca({ usuario, aoSair }: { usuario: Usuario; aoSair: () => void }) {
           <span className="lateral__usuario">{usuario.nome}</span>
           <a href="/" target="_blank" rel="noopener" className="lateral__acao">
             Ver site ↗
+          </a>
+          {/* a agenda tem painel proprio (Estudio, Equipe, Auditoria); daqui so o caminho */}
+          <a href={AGENDA_URL} target="_blank" rel="noopener" className="lateral__acao">
+            Abrir a agenda ↗
           </a>
           <button type="button" className="lateral__acao" onClick={sair}>
             Sair
