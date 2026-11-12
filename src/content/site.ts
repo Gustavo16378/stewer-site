@@ -24,6 +24,12 @@ export type Numero = { valor: string; legenda: string }
 
 // ------------------------------------------------------------- contatos
 
+/**
+ * A agenda online (o app, em outro projeto e com painel proprio). Os botoes de agendar
+ * levam para la; quem tem conta de equipe entra pelo mesmo login e cai no painel dele.
+ */
+export const AGENDA_URL = 'https://agenda.stewergabriel.com'
+
 export const CONTATO = {
   /** só dígitos, com o 55 */
   whatsapp: '5563985116783',
@@ -47,7 +53,7 @@ export const HERO = {
   nome: ['Stewer', 'Gabriel'],
   lema: 'Masculinidade com propósito',
   frase: '"Construindo homens confiantes, com personalidade única — transformando aparência em posicionamento."',
-  ctaPrimario: 'Agende sua consultoria',
+  ctaPrimario: 'Agendar horário',
   ctaSecundario: 'Ver portfólio',
 }
 

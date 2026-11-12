@@ -1,4 +1,4 @@
-import { CONTATO_SECAO, linkInstagram, linkTelefone, linkWhatsapp, telefoneFormatado } from '../content/site'
+import { AGENDA_URL, CONTATO_SECAO, linkInstagram, linkTelefone, linkWhatsapp, telefoneFormatado } from '../content/site'
 import Linhas from './Linhas'
 
 export default function Contact() {
@@ -21,10 +21,16 @@ export default function Contact() {
         {/* CTA buttons */}
         <div className="mt-14 flex flex-col sm:flex-row items-center justify-center gap-4 fade-up fade-up-d3">
           <a
+            href={AGENDA_URL}
+            className="w-full sm:w-auto px-12 py-4 bg-gold text-carbon text-[11px] tracking-ultra uppercase font-medium hover:bg-cream transition-colors duration-300 text-center"
+          >
+            Agendar horário
+          </a>
+          <a
             href={linkWhatsapp()}
             target="_blank"
             rel="noreferrer"
-            className="w-full sm:w-auto px-12 py-4 bg-gold text-carbon text-[11px] tracking-ultra uppercase font-medium hover:bg-cream transition-colors duration-300 text-center"
+            className="w-full sm:w-auto px-12 py-4 border border-wire/50 text-sand text-[11px] tracking-ultra uppercase hover:border-cream hover:text-cream transition-all duration-300 text-center"
           >
             WhatsApp
           </a>

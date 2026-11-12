@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { AGENDA_URL } from '../content/site'
 import { LogoNaCaixa } from './Logo'
 
 const links = [
@@ -78,10 +79,10 @@ export default function Nav() {
               </a>
             ))}
             <a
-              href="#contato"
+              href={AGENDA_URL}
               className="text-[11px] tracking-ultra uppercase text-gold border border-gold/50 px-5 py-2 hover:bg-gold hover:text-carbon transition-all duration-300"
             >
-              Agende
+              Agendar horário
             </a>
           </nav>
 
@@ -128,11 +129,11 @@ export default function Nav() {
           <div className="w-8 h-px bg-wire/40 mt-2" />
 
           <a
-            href="#contato"
+            href={AGENDA_URL}
             onClick={close}
             className="text-gold text-xs tracking-ultra uppercase hover:text-cream transition-colors duration-300"
           >
-            Agendar consultoria
+            Agendar horário
           </a>
         </nav>
       </div>

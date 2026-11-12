@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import Linhas from './Linhas'
-import { HERO, SLIDES, type Foto } from '../content/site'
+import { AGENDA_URL, HERO, SLIDES, type Foto } from '../content/site'
 
 // As fotos e os textos da abertura vêm do painel (aba "Fotos da abertura" e
 // "Textos do site"); o que está em content/site.ts é a reserva.
@@ -171,7 +171,7 @@ export default function Hero() {
 
             <div className="mt-12 flex flex-wrap items-center gap-4 fade-up fade-up-d4">
               <a
-                href="#contato"
+                href={AGENDA_URL}
                 className="text-[11px] tracking-ultra uppercase text-gold border border-gold/60 px-8 py-3.5 hover:bg-gold hover:text-carbon transition-all duration-300"
               >
                 {HERO.ctaPrimario}

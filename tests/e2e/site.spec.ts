@@ -65,6 +65,14 @@ test.describe('site público', () => {
     await expect(page.locator('#contato a', { hasText: 'Instagram' })).toHaveAttribute('href', 'https://www.instagram.com/stewer.gabriel')
   })
 
+  test('os botões de agendar levam para a agenda online', async ({ page }) => {
+    await abrirSite(page, '#contato')
+    const agenda = 'https://agenda.stewergabriel.com'
+    await expect(page.locator('#contato a', { hasText: 'Agendar horário' })).toHaveAttribute('href', agenda)
+    await expect(page.locator(`section a[href="${agenda}"]`).first()).toBeVisible()
+    expect(await page.locator(`a[href="${agenda}"]`).count()).toBeGreaterThanOrEqual(3)
+  })
+
   test('RF05 · o mapa mostra o lugar, as coordenadas e a rota configurados', async ({ page }) => {
     await abrirSite(page, '#onde-atende')
     const secao = page.locator('#onde-atende')

@@ -122,7 +122,7 @@ export const CAMPOS_TEXTO: CampoTexto[] = [
   linhas('hero.nome', S.hero, 'Nome grande', 40, 2, HERO, 'nome'),
   campo('hero.lema', S.hero, 'Lema', 'texto', 50, HERO, 'lema', 'Ao lado do traço dourado.'),
   campo('hero.frase', S.hero, 'Frase', 'area', 180, HERO, 'frase', 'Em itálico, abaixo do lema.'),
-  campo('hero.ctaPrimario', S.hero, 'Botão principal', 'texto', 30, HERO, 'ctaPrimario', 'Leva para "Contato".'),
+  campo('hero.ctaPrimario', S.hero, 'Botão principal', 'texto', 30, HERO, 'ctaPrimario', 'Leva para a agenda online (agenda.stewergabriel.com).'),
   campo('hero.ctaSecundario', S.hero, 'Botão secundário', 'texto', 30, HERO, 'ctaSecundario', 'Leva para "Portfólio".'),
 
   // ---------------------------------------------------------------- quem é
